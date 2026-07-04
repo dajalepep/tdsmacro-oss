@@ -13,7 +13,7 @@ TDSmacro.goal := "Triumph"
 TDSmacro.modifiersarrayinput := ["Hidden", "Glass", "Explod", "Limit", "Com", "Fog"]
 TDSmacro.map := "Blac"
 TDSmacro.survivalmode := "Easy"
-TDSmacro.debug := true
+;TDSmacro.debug := true
 TDSmacro.patience := 180
 gscoutloc := [
     [1072,534]
