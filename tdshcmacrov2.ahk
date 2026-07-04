@@ -9,7 +9,7 @@ killswitch := "F3"
 start := "F1"
 calibratecam := "F2"
 TDSmacro.patience := 600
-TDSmacro.debug := true
+;TDSmacro.debug := true
 
 pyroloc := [807, 34]
 engineerlocations := [

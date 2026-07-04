@@ -1,6 +1,6 @@
 ; TDSmacro.ahk
 ; requires FindText.ahk for ahkv2
-; also im currently tryna make OCR.ahk also needed
+; later i might try make OCR.ahk also needed so we can do 2 path towers :D
 class TDSmacro {
     static lost := false
     static pixelconfidence := 0.05 
@@ -55,7 +55,7 @@ class TDSmacro {
          "Inflation"
     ]
     static debug := false
-    static patience := 300 ;if a loop is more than that long it will try to rejoin
+    static patience := 150 ;if a loop is more than that long it will try to rejoin
     static gamesorigin := [500,550]
     static gamemodes := ["Hardcore", "PVP", "Survival", "Special Modes", "Sandbox"]
     static gamemode := "Survival"
@@ -70,13 +70,22 @@ class TDSmacro {
     static gdiToken := 0
     static whr := ComObject("WinHttp.WinHttpRequest.5.1")
     static __New() {
+        ; A_LineFile gets the path of THIS specific file, ensuring the INI is found
+        SplitPath(A_LineFile, , &moduleDir)
+        iniPath := moduleDir "\config.ini"
+
+        ; 1. Read webhook URL (default to empty string if missing)
+        this.webhookUrl := IniRead(iniPath, "Settings", "DiscordWebhook", "")
+
+        ; 2. Read debug mode (default to false, and parse string safely to boolean)
+        debugVal := IniRead(iniPath, "Settings", "Debug", "false")
+        this.debug := (debugVal = "true" || debugVal = "1")
+
+            ; 3. Read default patience (default to 150, and convert to integer safely)
         try {
-            ; A_LineFile gets the path of THIS specific file, ensuring the INI is found
-            SplitPath(A_LineFile, , &moduleDir)
-            this.webhookUrl := IniRead(moduleDir "\config.ini", "Settings", "DiscordWebhook")
+            this.patience := Integer(IniRead(iniPath, "Settings", "DefaultPatience", "150"))
         } catch {
-            ; Fallback or error handling if the INI or key is missing
-            this.webhookUrl := ""
+            this.patience := 150
         }
         
         ; Initialize GDI+ once for the lifetime of the macro
