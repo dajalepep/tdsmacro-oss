@@ -1,0 +1,11 @@
+# Ignore user-specific configuration containing sensitive Discord webhooks
+config.ini
+
+# Ignore temporary files or backups
+*.tmp
+*.bak
+*.log
+
+# Ignore Windows system files
+Thumbs.db
+Desktop.ini

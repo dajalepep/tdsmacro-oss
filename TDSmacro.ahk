@@ -1,4 +1,6 @@
 ; TDSmacro.ahk
+;Copyright (c) 2026 dajalepep
+;Licensed under the MIT License. See LICENSE file for details.
 ; requires FindText.ahk for ahkv2
 ; later i might try make OCR.ahk also needed so we can do 2 path towers :D
 class TDSmacro {
