@@ -87,6 +87,11 @@ class TDSmacro {
         } catch {
             this.patience := 150
         }
+        try {
+            this.giveuptolarance := Integer(IniRead(iniPath, "Settings", "Giveuptolarance", "2"))
+        } catch {
+            this.giveuptolarance := 2
+        }
         
         ; Initialize GDI+ once for the lifetime of the macro
         si := Buffer(A_PtrSize = 8 ? 24 : 16, 0)
