@@ -1,6 +1,6 @@
-﻿#Requires AutoHotkey v2.0
-#Include FindText.ahk
-#Include TDSmacro.ahk
+#Requires AutoHotkey v2.0
+;#Include %A_ScriptDir%\dependencies\FindText.ahk
+#Include %A_ScriptDir%\dependencies\TDSmacro.ahk
 SendMode "Event"
 SetDefaultMouseSpeed 4
 
@@ -99,7 +99,7 @@ StartLabel(HotkeyName) {
         TDSmacro.clickready()
         Sleep(20)
         for i,v in gscoutloc {
-            TDSmacro.canplace(v[1],v[2],"1")
+            TDSmacro.canplace(v[1],v[2],"1",250)
         }
         Sleep(200)
         for i,v in gscoutloc {
@@ -107,11 +107,11 @@ StartLabel(HotkeyName) {
             TDSmacro.upgradeuntil(2)
         }
         for i,v in electroloc {
-            TDSmacro.canplace(v[1],v[2],"2")
+            TDSmacro.canplace(v[1],v[2],"2",650)
             TDSmacro.upgradeuntil(2)
         }
         for i,v in gscoutsecondbatch {
-            TDSmacro.canplace(v[1],v[2],"1")
+            TDSmacro.canplace(v[1],v[2],"1",250)
             TDSmacro.upgradeuntil(2)
         }
         Sleep(200)

@@ -21,8 +21,9 @@ Instead of writing macro logic from scratch for every new strategy, **TDSmacro**
 
 ```
 tdsmacro-oss/
-├── FindText.ahk                # Core FindText library for screen/image detection
-├── TDSmacro.ahk                # The main reusable framework class
+├── dependencies/               # External AHK dependencies/libraries
+│   ├── FindText.ahk            # Core FindText library for screen/image detection
+│   └── TDSmacro.ahk            # The main reusable framework class
 ├── config.example.ini          # Settings template (rename to config.ini)
 ├── LICENSE                     # MIT License
 ├── README.md                   # Project documentation
@@ -59,8 +60,8 @@ Create a new `.ahk` script in the directory (e.g. `my_strat.ahk`) and structure 
 
 ```autohotkey
 #Requires AutoHotkey v2.0
-#Include FindText.ahk
-#Include TDSmacro.ahk
+#Include %A_ScriptDir%\dependencies\FindText.ahk
+#Include %A_ScriptDir%\dependencies\TDSmacro.ahk
 
 ; Set up click modes
 SendMode "Event"

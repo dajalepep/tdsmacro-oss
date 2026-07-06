@@ -1,8 +1,8 @@
 ; TDSmacro.ahk
-;Copyright (c) 2026 dajalepep
-;Licensed under the MIT License. See LICENSE file for details.
+; Copyright (c) 2026 dajalepep
+; Licensed under the MIT License. See LICENSE file for details.
 ; requires FindText.ahk for ahkv2
-; later i might try make OCR.ahk also needed so we can do 2 path towers :D
+; now moving a few stuff to ocr i hope it will go better
 class TDSmacro {
     static lost := false
     static pixelconfidence := 0.05 
@@ -31,6 +31,7 @@ class TDSmacro {
     static giveuptolarance := 2
     static loses := 0
     static rejoining := false
+    static UseOCR := true
     static sandclockimg := "|<>*137$22.0sQ07zs0TzU1zy0Dnw0jDE6wxUPzq1Dz84QsUE02300AQ00tk03b00CSQtttzbjbyTyQtxxnjXzzw7zzW" ;to check if player is on the uhh vote for a map type shi
     static solotext := "|<>*142$66.zzzzzzw3zzzy0Dzzzw3zzzs03zzzw3zzzU03zzzw3zzzU03zzzw3zzz003zzzw3zzz0zbz0Dw3y0T0zzw03w7s070Tzs01w7k0303zk00w7U01U0DU60w70A1k03UT0Q70y0s01UTUQ70z0z01UTUQ70z0zw1UTUQ70z0zy0UTUQ70z0bz1UT0Q70y0Uy1k60w7UA1001k00w7U01003s01w7k03007w03w7s07k0Tz0Dw7y0TU"
     static disconnectedtext := "|<>*147$115.zzbzzzzzzzzzzzzzzzy0TXzzzzzzzzzzzzbzzz03tzzzzzzzzzzzznzzzVkzzzzzzzzzzzzztzzzkyDzzzzzzzzzzzzwzzzsT6D3wDVsVsVy3w83Uy4DX60s30Q0Q0S0s01UC07tX6sP766C6CCMPbXa63wlXwTXn7b7bDYTnnt7VwMsSTnsXnXnU2Tts0XkyAS3DtwFtltk1Dww0FsTCDtXwSMwswtzXySTswC76QkyCASQSQSkz77gQ07X0Q1UCDCDD0Q1Uk700DlkT1sD7b7bsT1sS7kY"
@@ -59,10 +60,12 @@ class TDSmacro {
     static debug := false
     static patience := 150 ;if a loop is more than that long it will try to rejoin
     static gamesorigin := [500,550]
+    static lasttowercord := [100,100]
     static gamemodes := ["Hardcore", "PVP", "Survival", "Special Modes", "Sandbox"]
     static gamemode := "Survival"
     static survivalmodes := ["Easy", "Casual", "Intermediate", "Fallen", "Frost"]
     static map := "U-Turn"
+    static IterativeReads := 5
     static modifiersarrayinput := []
     static survivalmode := "Frost"
     static starttime := A_TickCount
@@ -72,9 +75,14 @@ class TDSmacro {
     static gdiToken := 0
     static whr := ComObject("WinHttp.WinHttpRequest.5.1")
     static __New() {
-        ; A_LineFile gets the path of THIS specific file, ensuring the INI is found
         SplitPath(A_LineFile, , &moduleDir)
-        iniPath := moduleDir "\config.ini"
+        if FileExist(A_ScriptDir "\config.ini") {
+            iniPath := A_ScriptDir "\config.ini"
+        } else if FileExist(moduleDir "\..\config.ini") {
+            iniPath := moduleDir "\..\config.ini"
+        } else {
+            iniPath := A_ScriptDir "\config.ini"
+        }
 
         ; 1. Read webhook URL (default to empty string if missing)
         this.webhookUrl := IniRead(iniPath, "Settings", "DiscordWebhook", "")
@@ -82,6 +90,9 @@ class TDSmacro {
         ; 2. Read debug mode (default to false, and parse string safely to boolean)
         debugVal := IniRead(iniPath, "Settings", "Debug", "false")
         this.debug := (debugVal = "true" || debugVal = "1")
+
+        UseOCRVal := IniRead(iniPath, "Settings", "UseOCRVal", "true")
+        this.UseOCR := (UseOCRVal = "true" || UseOCRVal = "1")
 
             ; 3. Read default patience (default to 150, and convert to integer safely)
         try {
@@ -93,6 +104,11 @@ class TDSmacro {
             this.giveuptolarance := Integer(IniRead(iniPath, "Settings", "Giveuptolarance", "2"))
         } catch {
             this.giveuptolarance := 2
+        }
+        try {
+            this.IterativeReads := Integer(IniRead(iniPath, "Settings", "IterativeReads", "2"))
+        } catch {
+            this.IterativeReads := 5
         }
         
         ; Initialize GDI+ once for the lifetime of the macro
@@ -121,6 +137,7 @@ class TDSmacro {
         }
     }
 
+    
     static logScreenshot(msg := "") {
     if (this.webhookUrl == "")
             return false
@@ -260,6 +277,76 @@ class TDSmacro {
         }
         return false
     }
+
+    static ocrwindowread(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=2,gray:=0,process:=unset) {
+        gray := gray ? 1 : 0
+        if (IsSet(process)==0) {
+            process := "ahk_exe " WinGetProcessName("A")
+        }
+        return OCR.FromWindow(process, {x: x1, y: y1, w: x2-x1, h: y2-y1, scale: Scale, grayscale: gray})
+    }
+
+    static OCRawaitmoney(n := 0) {
+        if (this.checklost() == true) {
+            return
+        }
+        if (Type(n) != "Integer") {
+            n := 0
+        }
+        if (this.debug == true) {
+            this.logTodc("Awaiting for money to be $" n)
+        }
+        if (n == 0) {
+            return
+        }
+        loopstartedat := A_TickCount
+        while (true) {
+            if (this.checklost() == true) {
+                break
+            }
+            this.insanitycheck(loopstartedat)
+            this.skipable()
+            Sleep(100)
+            findresult := this.ocrwindowread(1210,930,1330,960)
+            try {
+                currentmoney := Integer(RegExReplace(findresult.Text, "[^\d]"))
+                if (this.debug == true) {
+                    ToolTip("Currentmoney: " currentmoney)
+                }
+                if (currentmoney >= n) {
+                    break
+                }
+            }
+        }
+    }
+
+    static OCRgetupgradeprice() {
+        result := this.ocrwindowread(925,560,1280,890)
+        tablefromresult := StrSplit(RegExReplace(result.Text, "`r`n", " "), " ")
+    
+        price := 0
+        for i, v in tablefromresult {
+            if (InStr(v, "$")) {
+                cache := 0
+                try {
+                    cache := Integer(RegExReplace(v, "[^\d]"))
+                    if (this.debug == true) {
+                        ToolTip("Price found at: " cache)
+                    }
+                }
+                if (cache != 0) {
+                    if (price == 0) {
+                        price := cache
+                    }
+                    if (price > cache) {
+                        price := cache
+                    }
+                }
+            }
+        }
+        return price
+    }
+
     static PositiveSquash(n) {
         return (2 / (1 + 2 ** (-n / 2)) - 1)
     }
@@ -306,7 +393,7 @@ class TDSmacro {
         return this.lost
     }
 
-    static skipable() {
+    static skipable(ontower := false) {
         if (this.autoskip == false) {
             return
         }
@@ -319,6 +406,11 @@ class TDSmacro {
             Sleep(50)
             MouseMove(savedX, savedY)
         }
+        try {
+            if (ontower == true && InStr(this.ocrwindowread(625,560,925,890,2,true).Text,"Level:") == 0) {
+                this.selecttower(this.lasttowercord[1],this.lasttowercord[2])
+            }
+        }
     }
 
     static upgradeuntil(lvl) {
@@ -329,6 +421,47 @@ class TDSmacro {
             this.logTodc("Attempting to upgrade until lvl " lvl)
         }
         MouseMove(100, 100)
+        if (this.UseOCR == true) {
+            res := -1
+            loop this.IterativeReads {
+                if (res!=-1) {
+                    result := this.ocrwindowread(625,560,925,890,2,true)
+                    level := -1
+                    pos:=InStr(result.Text, "Level:")
+                    try {
+                        if !(pos=0) {
+                            cache := StrReplace(StrReplace(StrReplace(SubStr(result.Text,pos+7,1), "O", "0"), "I", "1"), "S", "5")
+                            level := (RegExReplace(cache, "[^\d]")="") ? -1 : Number(RegExReplace(cache, "[^\d]"))
+                        }
+                    }
+                    res := level
+                    Sleep(100)
+                }
+            }
+
+            if (res != -1 && lvl-res > 1) {
+                if (this.debug == true) {
+                    ToolTip("This tower is level: " res)
+                }
+                loop (lvl-res) {
+                    this.upgradeuntil(res+A_Index)
+                    if (this.checklost() == false) {
+                        Sleep(1000)
+                    }
+                }
+                return
+            }
+            upgradeprice := 0
+            loop this.IterativeReads {
+                cache := this.OCRgetupgradeprice()
+                if (cache != 0) {
+                    upgradeprice := cache
+                }
+            }
+            if (upgradeprice != 0) {
+                this.OCRawaitmoney(upgradeprice)
+            }
+        }
         loopstartedat := A_TickCount
         while (true) {
             Sleep(100)
@@ -338,13 +471,47 @@ class TDSmacro {
             if (this.checklost() == true) {
                 break
             }
-            if (this.Find(this.levels[lvl],0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
-                break
+
+            found := false
+
+            loop this.IterativeReads {
+                if (found == false) {
+                    if (this.UseOCR == true) {
+                        result := this.ocrwindowread(625,560,925,890,2,true)
+                        level := -1
+                        pos:=InStr(result.Text, "Level:")
+                        try {
+                            if !(pos=0) {
+                                cache := SubStr(result.Text,pos+7,1)
+                                if (cache="O") {
+                                    cache:=0
+                                }
+                                if (cache="I") {
+                                    cache:=1
+                                }
+                                if (cache="S") {
+                                    cache:=5
+                                }
+                                level:= (RegExReplace(cache, "[^\d]")="") ? -1 : Number(RegExReplace(cache, "[^\d]"))
+                            }
+                        }
+                        if (level == lvl) {
+                            found := true
+                        }
+                    } else {
+                        if (this.Find(this.levels[lvl],0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
+                            found := true
+                        }
+                    }
+                }
             }
+            if (found == true) {
+                break
+            } 
         }
     }
 
-    static canplace(a, b, c) {
+    static canplace(a, b, c, d := 0) {
         if (this.checklost() == true) {
             return
         }
@@ -353,6 +520,12 @@ class TDSmacro {
         }
         Sleep(150)
         it := 0
+        if (this.UseOCR == true) {
+            if (this.debug == True) {
+                this.logTodc("Awaiting for money by the assumed placement cost: " d)
+            }
+            this.OCRawaitmoney(d)
+        }
         loopstartedat := A_TickCount
         while (true) {
             Send(c)
@@ -363,11 +536,30 @@ class TDSmacro {
             targetY := this.Clamp(b + offsetY*this.PositiveSquash(it), 32, 1032)
         
             Click(targetX, targetY)
-            Sleep(1700)
+            Sleep(1200)
 
-            if (this.Find(this.leveltext,0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
+            found := false
+            loop this.IterativeReads {
+                if (found == false) {
+                    if (this.UseOCR == true) {
+                        result := this.ocrwindowread(625,560,925,890,2,true)
+                        level := -1
+                        pos:=InStr(result.Text, "Level:")
+                        if (pos != 0) {
+                            found := true
+                        }
+                    } else {
+                        if (this.Find(this.leveltext,0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
+                            found := true
+                        }
+                    }
+                    Sleep(100)
+                }
+            }
+            if (found == true) {
                 break
             }
+
             this.skipable()
             this.insanitycheck(loopstartedat)
             if (this.checklost() == true) {
@@ -375,6 +567,7 @@ class TDSmacro {
             }
             it:=it+1
         }
+        this.lasttowercord := [a,b]
     }
 
     static clickready() {
@@ -477,6 +670,7 @@ class TDSmacro {
             }
             it+=1
         }
+        this.lasttowercord := [a,b]
     }
 
     static ArrayAutoCorrectSearch(query, Arraylist) {
@@ -665,3 +859,6 @@ class TDSmacro {
     }
 
 }
+
+#Include FindText.ahk
+#Include OCR.ahk

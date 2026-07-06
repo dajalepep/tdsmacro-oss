@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
-#Include FindText.ahk
-#Include TDSmacro.ahk
+;#Include %A_ScriptDir%\dependencies\FindText.ahk
+#Include %A_ScriptDir%\dependencies\TDSmacro.ahk
 SendMode "Event"
 SetDefaultMouseSpeed 4
 
@@ -56,14 +56,14 @@ StartLabel(HotkeyName) {
         Send("1")
         Sleep(20)
         ;Click(pyroloc[1], pyroloc[2])
-        TDSmacro.canplace(pyroloc[1],pyroloc[2],"1")
+        TDSmacro.canplace(pyroloc[1],pyroloc[2],"1",850)
         Sleep(200)
         TDSmacro.upgradeuntil(3) ; target level 3 index
         Sleep(50)
         
         ; 3. Place Engineers and upgrade them to Level 3
         for i, v in engineerlocations {
-            TDSmacro.canplace(v[1], v[2], "2")
+            TDSmacro.canplace(v[1], v[2], "2",600)
             TDSmacro.upgradeuntil(3) ; level 3 index
         }
         
