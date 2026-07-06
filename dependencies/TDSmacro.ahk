@@ -664,11 +664,29 @@ class TDSmacro {
                 break
             }
             Click(targetX, targetY)
-            Sleep(900)
-            if (this.Find(this.leveltext,0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
+            found := false
+            loop this.IterativeReads {
+                if (found == false) {
+                    if (this.UseOCR == true) {
+                        result := this.ocrwindowread(625,560,925,890,2,true)
+                        level := -1
+                        pos:=InStr(result.Text, "Level:")
+                        if (pos != 0) {
+                            found := true
+                        }
+                    } else {
+                        if (this.Find(this.leveltext,0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
+                            found := true
+                        }
+                    }
+                    Sleep(100)
+                }
+            }
+            if (found == true) {
                 break
             }
             it+=1
+            Sleep(400)
         }
         this.lasttowercord := [a,b]
     }
