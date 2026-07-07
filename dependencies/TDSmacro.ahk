@@ -843,7 +843,7 @@ class TDSmacro {
                 MouseGetPos(&savedX, &savedY)
                 MouseMove(pos.x, pos.y, 5)
                 Sleep(50)
-                FindText().Click(pos.x, pos.y, "L")
+                Click(pos.x, pos.y, "L")
                 Sleep(50)
                 MouseMove(savedX, savedY, 5)
                 break
@@ -852,10 +852,10 @@ class TDSmacro {
         if (this.debug == True) {
             this.logTodc("Play text found")
         }
-        Sleep(500)
+        Sleep(3500)
         cache := this.ArrayAutoCorrectSearch(this.gamemode,this.gamemodes)
         Click((cache[3]-1)*250+this.gamesorigin[1],this.gamesorigin[2])
-        Sleep(500)
+        Sleep(1500)
         if (cache[1] = this.gamemodes[3]) {
             Click((this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]-1)*250-125+this.gamesorigin[1],this.gamesorigin[2])
         }
