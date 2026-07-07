@@ -46,13 +46,18 @@ To prevent committing private details like Discord webhooks to public repositori
 2. Open `config.ini` in a text editor and customize the settings:
    ```ini
    [Settings]
-   # (Optional) Paste your Discord Webhook URL here for remote monitoring
-   DiscordWebhook=https://discord.com/api/webhooks/...
-   Debug=false
-   # The macro will rejoin if a loop takes longer than this (in seconds)
-   DefaultPatience=150
-   # Rejoin after this many consecutive losses
-   Giveuptolarance=2
+    # Paste your Discord Webhook URL here to get status updates and screenshots
+    DiscordWebhook=
+    # Set to true to print debug messages to Discord/console
+    Debug=false
+    # If a loop lasts longer than this duration (in seconds), the macro will automatically rejoin
+    DefaultPatience=150
+    # How many losses before the macro automatically rejoins to try again
+    Giveuptolarance=2
+    # below is for how much times does it checks that your tower has been placed/selected before restarting the loop (increase if you had higher ping)
+    IterativeReads=5
+    # new version for level checking, set to false if you wanna use the legacy kinda broken version
+    UseOCR=true
    ```
 
 ### 3. Writing Your First Strategy
