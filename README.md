@@ -22,12 +22,14 @@ Instead of writing macro logic from scratch for every new strategy, **TDSmacro**
 ```
 tdsmacro-oss/
 ├── dependencies/               # External AHK dependencies/libraries
-│   ├── FindText.ahk            # Core FindText library for screen/image detection
+│   ├── FindText.ahk            # Core FindText library (yeah that one from feiyue) for screen/image detection
+│   ├── OCR.ahk                 # Core OCR library (also yeah that one from descolada) for optical character recognition
 │   └── TDSmacro.ahk            # The main reusable framework class
-├── config.example.ini          # Settings template (rename to config.ini)
+├── config.example.ini          # Settings template (copy to config.ini if theres anything missing there)
+├── config.ini                  # Main configuration file
 ├── LICENSE                     # MIT License
 ├── README.md                   # Project documentation
-├── tdshcmacrov2.ahk            # Example strategy (Hardcore Mode placement)
+├── tdshcmacrov2.ahk            # Example strategy (Hardcore Gem grind and evolved tower xp grind)
 └── tdsmacrocoinTRIUMPHyipee.ahk # Example strategy (Coin farming on Black Spot Exchange)
 ```
 
