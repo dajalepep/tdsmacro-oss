@@ -11,15 +11,13 @@ TDSmacro.patience := 600
 TDSmacro.gamemode := "Hardcore"
 
 pyroloc := [807, 34]
-engineerlocations := [
-    [952, 172],
-    [980, 206],
-    [1011, 246]
+sniperlocations := [
+    [620, 753]
 ]
-minilocations := [
-    [955, 308]
-]
-
+loop 2 {
+    sniperlocations.Push([sniperlocations[1][1]+(52*A_Index),sniperlocations[1][2]])
+}
+evolvedtowerlocation := [955, 308]
 ; Coordinate Modes Setup for AHK v2
 CoordMode("Mouse", "Window")
 
@@ -47,32 +45,18 @@ CalibrateLabel(HotkeyName) {
 StartLabel(HotkeyName) {
     while (true) {
         TDSmacro.lost := false
-        
-        ; 1. Wait and click ready button
         TDSmacro.clickready()
-        
-        ; 2. Place Pyro and upgrade it to Level 3
-        Send("1")
         Sleep(20)
-        ;Click(pyroloc[1], pyroloc[2])
-        TDSmacro.canplace(pyroloc[1],pyroloc[2],"1",850)
+        TDSmacro.canplace(pyroloc[1],pyroloc[2],"1",900)
         Sleep(200)
-        TDSmacro.upgradeuntil(3) ; target level 3 index
+        TDSmacro.upgradeuntil(3)
         Sleep(50)
-        
-        ; 3. Place Engineers and upgrade them to Level 3
-        for i, v in engineerlocations {
-            TDSmacro.canplace(v[1], v[2], "2",600)
-            TDSmacro.upgradeuntil(3) ; level 3 index
+        for i, v in sniperlocations {
+            TDSmacro.canplace(v[1], v[2], "2",450)
+            TDSmacro.upgradeuntil(3)
         }
-        
-        ; 4. Place Minis and upgrade them to Level 2
-        for i, v in minilocations {
-            TDSmacro.canplace(v[1], v[2], "3")
-            TDSmacro.upgradeuntil(4) ; level 2 index
-        }
-        
-        ; 5. Handle Game Over state and loops back
+        TDSmacro.canplace(evolvedtowerlocation[1], evolvedtowerlocation[2], "3")
+        TDSmacro.upgradeuntil(4)
         TDSmacro.restartonlost()
     }
 }

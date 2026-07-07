@@ -1,5 +1,4 @@
 #Requires AutoHotkey v2.0
-;#Include %A_ScriptDir%\dependencies\FindText.ahk
 #Include %A_ScriptDir%\dependencies\TDSmacro.ahk
 SendMode "Event"
 SetDefaultMouseSpeed 4
@@ -13,8 +12,6 @@ TDSmacro.goal := "Triumph"
 TDSmacro.modifiersarrayinput := ["Hidden", "Glass", "Explod", "Limit", "Com", "Fog"]
 TDSmacro.map := "Blac"
 TDSmacro.survivalmode := "Easy"
-;TDSmacro.debug := true
-;TDSmacro.patience := 180
 gscoutloc := [
     [1072,534]
 ]
@@ -26,12 +23,6 @@ rightelectroloc := [
     [1342,646]
 ]
 electroloc := []
-F4::{
-    TDSmacro.logTodc("Hello world!")
-}
-F5::{
-    TDSmacro.logScreenshot("Print screenshot!")
-}
 Loop 4 {
     gscoutloc.Push([gscoutloc[gscoutloc.length][1]-52,gscoutloc[gscoutloc.length][2]])
 }

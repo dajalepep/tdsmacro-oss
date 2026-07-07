@@ -21,15 +21,17 @@ Instead of writing macro logic from scratch for every new strategy, **TDSmacro**
 
 ```
 tdsmacro-oss/
-├── dependencies/               # External AHK dependencies/libraries
-│   ├── FindText.ahk            # Core FindText library (yeah that one from feiyue) for screen/image detection
-│   ├── OCR.ahk                 # Core OCR library (also yeah that one from descolada) for optical character recognition
-│   └── TDSmacro.ahk            # The main reusable framework class
-├── config.example.ini          # Settings template (copy to config.ini if theres anything missing there)
-├── config.ini                  # Main configuration file
-├── LICENSE                     # MIT License
-├── README.md                   # Project documentation
-├── tdshcmacrov2.ahk            # Example strategy (Hardcore Gem grind and evolved tower xp grind)
+├── dependencies/                # External AHK dependencies/libraries
+│   ├── FindText.ahk             # Core FindText library (yeah that one from feiyue) for screen/image detection
+│   ├── OCR.ahk                  # Core OCR library (also yeah that one from descolada) for optical character recognition
+│   └── TDSmacro.ahk             # The main reusable framework class
+├── config.example.ini           # Settings template (copy to config.ini if theres anything missing there)
+├── config.ini                   # Main configuration file
+├── LICENSE                      # MIT License
+├── README.md                    # Project documentation
+├── tdscoinNSTmacroTRIUMPH.ahk   # Example strategy (Coin farming on Dead ahead with No special towers)
+├── tdshcNSTmacrogemgrind.ahk    # Example strategy (Hardcore Gem grind and evolved tower xp grind with No special towers)
+├── tdshcmacrov2.ahk             # Example strategy (Hardcore Gem grind and evolved tower xp grind)
 └── tdsmacrocoinTRIUMPHyipee.ahk # Example strategy (Coin farming on Black Spot Exchange)
 ```
 
@@ -44,7 +46,7 @@ tdsmacro-oss/
 ### 2. Configuration Setup
 To prevent committing private details like Discord webhooks to public repositories, configuration settings are kept in `config.ini` which is ignored by Git.
 
-1. Duplicate `config.example.ini` and rename the copy to `config.ini`.
+1. See `config.example.ini` as a schema for `config.ini`.
 2. Open `config.ini` in a text editor and customize the settings:
    ```ini
    [Settings]
@@ -53,11 +55,13 @@ To prevent committing private details like Discord webhooks to public repositori
     # Set to true to print debug messages to Discord/console
     Debug=false
     # If a loop lasts longer than this duration (in seconds), the macro will automatically rejoin
-    DefaultPatience=150
-    # How many losses before the macro automatically rejoins to try again
+    DefaultPatience=180
+    # How many losses before the macro automatically rejoins to try again (if goal is to Triumph)
     Giveuptolarance=2
     # below is for how much times does it checks that your tower has been placed/selected before restarting the loop (increase if you had higher ping)
     IterativeReads=5
+    # below if you want your macro to use timescale, i dont really reccomend if you use exploding enemies modifiers or just a laggy gameplay
+    UseTimescale=false
     # new version for level checking, set to false if you wanna use the legacy kinda broken version
     UseOCR=true
    ```

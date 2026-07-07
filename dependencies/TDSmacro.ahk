@@ -72,6 +72,7 @@ class TDSmacro {
     ;static hardcoremodes := ["Hardcore", "Voidcore"]
     ;static hardcoremode := "Hardcore"
     static webhookUrl := ""
+    static UseTimescale := false
     static gdiToken := 0
     static whr := ComObject("WinHttp.WinHttpRequest.5.1")
     static __New() {
@@ -93,6 +94,9 @@ class TDSmacro {
 
         UseOCRVal := IniRead(iniPath, "Settings", "UseOCRVal", "true")
         this.UseOCR := (UseOCRVal = "true" || UseOCRVal = "1")
+
+        UseTimescale := IniRead(iniPath, "Settings", "UseTimescale", "false")
+        this.UseTimescale := (UseTimescale = "true" || UseTimescale = "1")
 
             ; 3. Read default patience (default to 150, and convert to integer safely)
         try {
@@ -347,6 +351,54 @@ class TDSmacro {
         return price
     }
 
+    static Timescale() {
+        if (this.checklost() == true) {
+            return
+        }
+        if (this.debug == True) {
+            this.logTodc("Attempting to use timescale ticket")
+        }
+        xconstant := 660
+        if (this.gamemode == this.gamemodes[1]) { ; cuz hardcore cant use consumeable so we have to shift it by a bit
+            xconstant := 730
+        }
+        Click(xconstant,1000)
+        Sleep(200)
+        ticketsleft := 0
+        loopstartedat := A_TickCount
+        while (true) {
+            this.insanitycheck(loopstartedat)
+            if (this.checklost() == true) {
+                break
+            }
+            Sleep(300)
+            result := this.ocrwindowread(820,410,1110,700,2,true)
+            pos := InStr(result.Text, "You have ")
+            if (pos != 0) {
+                try {
+                    cache := StrReplace(StrReplace(StrReplace(SubStr(result.Text,pos+9,4), "O", "0"), "I", "1"), "S", "5")
+                    ticketsleft := (RegExReplace(cache, "[^\d]")="") ? -1 : Number(RegExReplace(cache, "[^\d]"))
+                }
+            }
+            if (ticketsleft > 1) {
+                Click(970,630)
+                Sleep(500)
+                Click(xconstant,1000)
+                Sleep(500)
+                Click(xconstant,1000)
+                break
+            } else {
+                if (ticketsleft == 1) {
+                    this.UseTimescale := false
+                    this.logScreenshot("Saving timescale tickets, disabling timescale and runs macro as usual")
+                    Sleep(2000)
+                    Click(970,700)
+                    break
+                }
+            }
+        }
+    }
+
     static PositiveSquash(n) {
         return (2 / (1 + 2 ** (-n / 2)) - 1)
     }
@@ -495,7 +547,7 @@ class TDSmacro {
                                 level:= (RegExReplace(cache, "[^\d]")="") ? -1 : Number(RegExReplace(cache, "[^\d]"))
                             }
                         }
-                        if (level == lvl) {
+                        if (level >= lvl) {
                             found := true
                         }
                     } else {
@@ -572,6 +624,9 @@ class TDSmacro {
 
     static clickready() {
         this.lost := false
+        if (this.UseTimescale == true) {
+            this.Timescale()
+        }
         loopstartedat := A_TickCount
         while (true) {
             Sleep(20)
