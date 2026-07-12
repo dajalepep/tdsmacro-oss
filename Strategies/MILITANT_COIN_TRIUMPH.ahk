@@ -1,5 +1,5 @@
 #Requires AutoHotkey v2.0
-#Include %A_ScriptDir%\dependencies\TDSmacro.ahk
+#Include %A_ScriptDir%\..\dependencies\TDSmacro.ahk
 SendMode "Event"
 SetDefaultMouseSpeed 4
 
@@ -17,8 +17,8 @@ TDSmacro.survivalmode := "Easy"
 ; Coordinate Modes Setup for AHK v2
 CoordMode("Mouse", "Window")
 
-leftmilitants := [[893,130]]
-rightmilitants := [[973,130]]
+leftmilitants := [[890,130]]
+rightmilitants := [[975,130]]
 militants := []
 
 loop 4 {
@@ -57,8 +57,14 @@ StartLabel(HotkeyName) {
         TDSmacro.lost := false
         TDSmacro.autoskip := true
         TDSmacro.clickready()
+        early := 0
         for i,v in militants {
-            TDSmacro.canplace(v[1],v[2],"1",600)
+            placeprice := 600
+            if early < 2 {
+                placeprice := 0
+                early+=1
+            }
+            TDSmacro.canplace(v[1],v[2],"1",placeprice)
             TDSmacro.upgradeuntil(1)
         }
         TDSmacro.autoskip:=false

@@ -58,7 +58,7 @@ class TDSmacro {
          "Inflation"
     ]
     static debug := false
-    static patience := 150 ;if a loop is more than that long it will try to rejoin
+    static patience := 180 ;if a loop is more than that long it will try to rejoin
     static gamesorigin := [500,550]
     static lasttowercord := [100,100]
     static gamemodes := ["Hardcore", "PVP", "Survival", "Special Modes", "Sandbox"]
@@ -74,6 +74,9 @@ class TDSmacro {
     static webhookUrl := ""
     static UseTimescale := false
     static gdiToken := 0
+    static TimescaleUntil:=1
+    static lastupgardecost := 0
+    static selectingtower := false
     static whr := ComObject("WinHttp.WinHttpRequest.5.1")
     static __New() {
         SplitPath(A_LineFile, , &moduleDir)
@@ -100,19 +103,48 @@ class TDSmacro {
 
             ; 3. Read default patience (default to 150, and convert to integer safely)
         try {
-            this.patience := Integer(IniRead(iniPath, "Settings", "DefaultPatience", "150"))
+            this.patience := Max(60,Integer(IniRead(iniPath, "Settings", "DefaultPatience", "150")))
         } catch {
             this.patience := 150
         }
         try {
-            this.giveuptolarance := Integer(IniRead(iniPath, "Settings", "Giveuptolarance", "2"))
+            this.giveuptolarance := Max(1,Integer(IniRead(iniPath, "Settings", "Giveuptolarance", "2")))
         } catch {
             this.giveuptolarance := 2
         }
         try {
-            this.IterativeReads := Integer(IniRead(iniPath, "Settings", "IterativeReads", "2"))
+            this.IterativeReads := Max(1,Integer(IniRead(iniPath, "Settings", "IterativeReads", "5")))
         } catch {
             this.IterativeReads := 5
+        }
+        try {
+            this.TimescaleUntil := Max(1,Integer(IniRead(iniPath, "Settings", "TimescaleUntil", "1")))
+        } catch {
+            this.TimescaleUntil := 1
+        }
+        try {
+            this.pixelconfidence := this.Clamp(Integer(IniRead(iniPath, "Settings", "PixelConfidence", "0.05")),0,1)
+        } catch {
+            this.pixelconfidence := 0.05
+        }
+        try {
+            this.colorconfidence := this.Clamp(Integer(IniRead(iniPath, "Settings", "ColorConfidence", "0.05")),0,1)
+        } catch {
+            this.colorconfidence := 0.05
+        }
+
+
+        try {
+            if (this.debug == true) {
+                APPBARDATA := Buffer(A_PtrSize == 8 ? 48 : 36, 0)
+                NumPut("UInt", APPBARDATA.Size, APPBARDATA, 0)
+                state := DllCall("Shell32\SHAppBarMessage", "UInt", 4, "Ptr", APPBARDATA, "UInt")
+                if (state & 1) {
+                    this.logTodc("TDSmacro v1.2 Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                } else {
+                    this.logTodc("TDSmacro v1.2 Taskbar Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                }
+            }
         }
         
         ; Initialize GDI+ once for the lifetime of the macro
@@ -285,7 +317,11 @@ class TDSmacro {
     static ocrwindowread(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=2,gray:=0,process:=unset) {
         gray := gray ? 1 : 0
         if (IsSet(process)==0) {
-            process := "ahk_exe " WinGetProcessName("A")
+            try {
+                process := "ahk_exe " WinGetProcessName("A")
+            } catch {
+                process := "ahk_exe RobloxPlayerBeta.exe"
+            } 
         }
         return OCR.FromWindow(process, {x: x1, y: y1, w: x2-x1, h: y2-y1, scale: Scale, grayscale: gray})
     }
@@ -310,8 +346,8 @@ class TDSmacro {
             }
             this.insanitycheck(loopstartedat)
             this.skipable()
-            Sleep(100)
-            findresult := this.ocrwindowread(1210,930,1330,960)
+            Sleep(50)
+            findresult := this.ocrwindowread(1210,930,1330,960,3)
             try {
                 currentmoney := Integer(RegExReplace(findresult.Text, "[^\d]"))
                 if (this.debug == true) {
@@ -348,6 +384,12 @@ class TDSmacro {
                 }
             }
         }
+        if (price!=0) {
+            this.lastupgardecost := price
+            if (this.debug==true) {
+                this.logTodc("Upgrade Price found at $" price)
+            }
+        }
         return price
     }
 
@@ -380,7 +422,7 @@ class TDSmacro {
                     ticketsleft := (RegExReplace(cache, "[^\d]")="") ? -1 : Number(RegExReplace(cache, "[^\d]"))
                 }
             }
-            if (ticketsleft > 1) {
+            if (ticketsleft > this.TimescaleUntil) {
                 Click(970,630)
                 Sleep(500)
                 Click(xconstant,1000)
@@ -388,7 +430,7 @@ class TDSmacro {
                 Click(xconstant,1000)
                 break
             } else {
-                if (ticketsleft == 1) {
+                if (ticketsleft <= this.TimescaleUntil && ticketsleft != 0) {
                     this.UseTimescale := false
                     this.logScreenshot("Saving timescale tickets, disabling timescale and runs macro as usual")
                     Sleep(2000)
@@ -476,7 +518,7 @@ class TDSmacro {
         if (this.UseOCR == true) {
             res := -1
             loop this.IterativeReads {
-                if (res!=-1) {
+                if (res==-1) {
                     result := this.ocrwindowread(625,560,925,890,2,true)
                     level := -1
                     pos:=InStr(result.Text, "Level:")
@@ -487,7 +529,7 @@ class TDSmacro {
                         }
                     }
                     res := level
-                    Sleep(100)
+                    Sleep(50)
                 }
             }
 
@@ -498,7 +540,16 @@ class TDSmacro {
                 loop (lvl-res) {
                     this.upgradeuntil(res+A_Index)
                     if (this.checklost() == false) {
-                        Sleep(1000)
+                        ucache := this.lastupgardecost
+                        loop this.IterativeReads {
+                            if (ucache!=this.lastupgardecost) {
+                                if (this.OCRgetupgradeprice()!=ucache) {
+                                    break
+                                } else {
+                                    Sleep(800/this.IterativeReads)
+                                }
+                            } 
+                        }
                     }
                 }
                 return
@@ -508,6 +559,7 @@ class TDSmacro {
                 cache := this.OCRgetupgradeprice()
                 if (cache != 0) {
                     upgradeprice := cache
+                    break
                 }
             }
             if (upgradeprice != 0) {
@@ -516,9 +568,9 @@ class TDSmacro {
         }
         loopstartedat := A_TickCount
         while (true) {
-            Sleep(100)
+            Sleep(50)
             Send("e")
-            this.skipable()
+            this.skipable(true)
             this.insanitycheck(loopstartedat)
             if (this.checklost() == true) {
                 break
@@ -570,9 +622,9 @@ class TDSmacro {
         if (this.debug == True) {
             this.logTodc("Attempting to place key " c " tower at X=" a " Y=" b)
         }
-        Sleep(150)
+        this.selectingtower := false
         it := 0
-        if (this.UseOCR == true) {
+        if (this.UseOCR == true && d!=0) {
             if (this.debug == True) {
                 this.logTodc("Awaiting for money by the assumed placement cost: " d)
             }
@@ -588,10 +640,44 @@ class TDSmacro {
             targetY := this.Clamp(b + offsetY*this.PositiveSquash(it), 32, 1032)
         
             Click(targetX, targetY)
-            Sleep(1200)
+            Sleep(50)
+            OCRplaced := false
+            if (this.UseOCR == true) {
+                loop this.IterativeReads {
+                    MouseGetPos(&mx,&my)
+                    rescr := this.ocrwindowread(mx+5,my-85,mx+245,my-60)
+                    if (InStr(rescr.Text,"Tower")) {
+                        Send("q")
+                        this.selecttower(a,b)
+                        return
+                    }
+                    if (OCRplaced == false) {
+                        res := this.ocrwindowread(mx+10,my+25,mx+100,my+55,3,true)
+                        if (InStr(res.Text,"Rotate")==0) {
+                            OCRplaced := true
+                            break
+                        }
+                        result := this.ocrwindowread(625,560,925,890,2,true)
+                        pos:=InStr(result.Text, "Level:")
+                        if (pos != 0) {
+                            OCRplaced := true
+                            break
+                        }
+                        Sleep(50)
+                    }
+                }
+            } else {
+                Sleep(50*this.IterativeReads)
+            }
+            ;Click(targetX,targetY)
+            mult := 3
+            if (OCRplaced == false) {
+                Sleep(1300 - 50*this.IterativeReads)
+                mult := 1
+            }
 
             found := false
-            loop this.IterativeReads {
+            loop this.IterativeReads*mult {
                 if (found == false) {
                     if (this.UseOCR == true) {
                         result := this.ocrwindowread(625,560,925,890,2,true)
@@ -605,7 +691,7 @@ class TDSmacro {
                             found := true
                         }
                     }
-                    Sleep(100)
+                    Sleep(50)
                 }
             }
             if (found == true) {
@@ -620,6 +706,7 @@ class TDSmacro {
             it:=it+1
         }
         this.lasttowercord := [a,b]
+        this.selectingtower := true
     }
 
     static clickready() {
@@ -638,6 +725,7 @@ class TDSmacro {
                 MouseMove(pos.x, pos.y)
                 Sleep(50)
                 FindText().Click(pos.x, pos.y, "L")
+                Sleep(100)
                 break
             }
         }
@@ -704,12 +792,13 @@ class TDSmacro {
             this.logTodc("Attempt to select a towe at X=" a " Y=" b)
         }
         Click(100,100)
+        this.selectingtower := false
         it:=0
-        Sleep(100)
+        Sleep(50)
         loopstartedat := A_TickCount
         while (true) {
-            offsetX := Random(-(this.noisestrength / 2), (this.noisestrength / 2))
-            offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2))
+            offsetX := Random(-(this.noisestrength / 2), (this.noisestrength / 2)) + Ceil((a/(A_ScreenWidth/2)-1)*15)
+            offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2)) + Ceil((b/(A_ScreenHeight/2)-1)*15)
         
             targetX := this.Clamp(a + offsetX*this.PositiveSquash(it), 8, 1927)
             targetY := this.Clamp(b + offsetY*this.PositiveSquash(it), 32, 1032)
@@ -734,16 +823,50 @@ class TDSmacro {
                             found := true
                         }
                     }
-                    Sleep(100)
+                    Sleep(Floor(800/this.IterativeReads))
                 }
             }
             if (found == true) {
                 break
             }
-            it+=1
-            Sleep(400)
+            it++
+            if (Mod(it,10)==0) {
+                click(100,100)
+                this.selectingtower := false
+            }
+            Sleep(50)
         }
         this.lasttowercord := [a,b]
+        this.selectingtower := true
+    }
+
+    static ChangeTrack(right:=1,abilities:=0,mercshift:=1) {
+        trackorigin := [1400, 640]
+        Sleep(50)
+        Click(trackorigin[1]+(right-1)*65,trackorigin[2]+(mercshift-1)*85+abilities*105)
+    }
+
+    static UseAbility(key,x:=unset,y:=unset,place:=false) {
+        Sleep(50)
+        Send("q")
+        Sleep(50)
+        Click(100,100)
+        Sleep(50)
+        Send(key)
+        Sleep(50)
+        try {
+            if (IsSet(x)==true && IsSet(y)==true) {
+                place := (place = true || place = false) ? place : false
+                if (place==true) {
+                    this.selecttower(x,y)
+                } else {
+                    Click(x,y)
+                }
+            }
+        }
+        if (this.selectingtower==true) {
+            this.selecttower(this.lasttowercord[1],this.lasttowercord[2])
+        }
     }
 
     static ArrayAutoCorrectSearch(query, Arraylist) {
@@ -891,6 +1014,9 @@ class TDSmacro {
         loopstartedat := A_TickCount
         while (true) {
             Sleep(100)
+            try {
+                WinActivate("ahk_exe RobloxPlayerBeta.exe")
+            }
             if (this.insanitycheck(loopstartedat) == true) {
                 return
             }
@@ -920,7 +1046,7 @@ class TDSmacro {
                 return
             }
             Sleep(80)
-            if (pos := this.Find(this.solotext, 0.15, 0.05)) {
+            if (pos := this.Find(this.solotext, 0.18, 0.05,550,330,960,560)) {
                 FindText().Click(pos.x, pos.y, "L")
                 break
             }

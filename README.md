@@ -21,18 +21,20 @@ Instead of writing macro logic from scratch for every new strategy, **TDSmacro**
 
 ```
 tdsmacro-oss/
-├── dependencies/                # External AHK dependencies/libraries
-│   ├── FindText.ahk             # Core FindText library (yeah that one from feiyue) for screen/image detection
-│   ├── OCR.ahk                  # Core OCR library (also yeah that one from descolada) for optical character recognition
-│   └── TDSmacro.ahk             # The main reusable framework class
-├── config.example.ini           # Settings template (copy to config.ini if theres anything missing there)
-├── config.ini                   # Main configuration file
-├── LICENSE                      # MIT License
-├── README.md                    # Project documentation
-├── tdscoinNSTmacroTRIUMPH.ahk   # Example strategy (Coin farming on Dead ahead with No special towers)
-├── tdshcNSTmacrogemgrind.ahk    # Example strategy (Hardcore Gem grind and evolved tower xp grind with No special towers)
-├── tdshcmacrov2.ahk             # Example strategy (Hardcore Gem grind and evolved tower xp grind)
-└── tdsmacrocoinTRIUMPHyipee.ahk # Example strategy (Coin farming on Black Spot Exchange)
+├── dependencies/                    # External AHK dependencies/libraries
+│   ├── FindText.ahk                 # Core FindText library (yeah that one from feiyue) for screen/image detection
+│   ├── OCR.ahk                      # Core OCR library (also yeah that one from descolada) for optical character recognition
+│   └── TDSmacro.ahk                 # The main reusable framework class
+├── config.example.ini               # Settings template (copy to config.ini if theres anything missing there)
+├── config.ini                       # Main configuration file
+├── LICENSE                          # MIT License
+├── README.md                        # Project documentation
+└── Strategies/                      # Example Strategies
+    ├── MILITANT_COIN_TRIUMPH.ahk    # Example 1 (Coin farming on Dead ahead with No special towers)
+    ├── PYRO_SNIPER_GEM.ahk          # Example 2 (Hardcore Gem grind and evolved tower xp grind with No special towers)
+    ├── PYRO_ENGI_GEM.ahk            # Example 3 (Hardcore Gem grind and evolved tower xp grind)
+    ├── BRAWLER_COIN_LOSE.ahk        # Example 4 (VIP-less coin grind on Winter bridges)
+    └── GSOLDIER_COIN_TRIUMPH.ahk    # Example 5 (Coin farming on Dead ahead)
 ```
 
 ---
@@ -62,8 +64,13 @@ To prevent committing private details like Discord webhooks to public repositori
     IterativeReads=5
     # below if you want your macro to use timescale, i dont really reccomend if you use exploding enemies modifiers or just a laggy gameplay
     UseTimescale=false
+    # keep your tickets above this certain limit
+    TimescaleUntil=1
     # new version for level checking, set to false if you wanna use the legacy kinda broken version
     UseOCR=true
+    # error tolarance default for Findtext.ahk
+    PixelConfidence=0.05
+    ColorConfidence=0.05
    ```
 
 ### 3. Writing Your First Strategy
@@ -120,7 +127,7 @@ StartMacro() {
 ### Core Methods
 - `TDSmacro.clickready()`: Blocks execution until the game starts, finding and clicking the Ready button.
 - `TDSmacro.CalibrateCam()`: Resets the camera orientation and zooms all the way out.
-- `TDSmacro.canplace(x, y, hotkey)`: Selects slot matching `hotkey` (e.g. `"1"`), attempts to place it at `(x, y)`, adjusting randomly with noise if placement is blocked, and waits until placement succeeds.
+- `TDSmacro.canplace(x, y, hotkey, price)`: Selects slot matching `hotkey` (e.g. `"1"`),wait for `price` attempts to place it at `(x, y)`, adjusting randomly with noise if placement is blocked, and waits until placement succeeds.
 - `TDSmacro.selecttower(x, y)`: Selects a placed tower at `(x, y)`.
 - `TDSmacro.upgradeuntil(level)`: Upgrades the currently selected tower continuously until it matches the visual level index.
 - `TDSmacro.restartonlost()`: Detects a Triumph or Game Over, logs details / takes a screenshot, clicks "Play Again", and handles map voting/modifiers on game loop.

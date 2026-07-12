@@ -1,5 +1,5 @@
 #Requires AutoHotkey v2.0
-#Include %A_ScriptDir%\dependencies\TDSmacro.ahk
+#Include %A_ScriptDir%\..\dependencies\TDSmacro.ahk
 SendMode "Event"
 SetDefaultMouseSpeed 4
 
@@ -47,7 +47,7 @@ StartLabel(HotkeyName) {
         TDSmacro.lost := false
         TDSmacro.clickready()
         Sleep(20)
-        TDSmacro.canplace(pyroloc[1],pyroloc[2],"1",900)
+        TDSmacro.canplace(pyroloc[1],pyroloc[2],"1")
         Sleep(200)
         TDSmacro.upgradeuntil(3)
         Sleep(50)
