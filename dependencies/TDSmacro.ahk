@@ -123,12 +123,12 @@ class TDSmacro {
             this.TimescaleUntil := 1
         }
         try {
-            this.pixelconfidence := this.Clamp(Integer(IniRead(iniPath, "Settings", "PixelConfidence", "0.05")),0,1)
+            this.pixelconfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "PixelConfidence", "0.05")),0,1)
         } catch {
             this.pixelconfidence := 0.05
         }
         try {
-            this.colorconfidence := this.Clamp(Integer(IniRead(iniPath, "Settings", "ColorConfidence", "0.05")),0,1)
+            this.colorconfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "ColorConfidence", "0.05")),0,1)
         } catch {
             this.colorconfidence := 0.05
         }
@@ -499,10 +499,10 @@ class TDSmacro {
             Click(1023,217)
             Sleep(50)
             MouseMove(savedX, savedY)
-        }
-        try {
-            if (ontower == true && InStr(this.ocrwindowread(625,560,925,890,2,true).Text,"Level:") == 0) {
-                this.selecttower(this.lasttowercord[1],this.lasttowercord[2])
+            try {
+                if (ontower == true && InStr(this.ocrwindowread(625,560,925,890,2,true).Text,"Level:") == 0) {
+                    this.selecttower(this.lasttowercord[1],this.lasttowercord[2])
+                }
             }
         }
     }
@@ -542,13 +542,12 @@ class TDSmacro {
                     if (this.checklost() == false) {
                         ucache := this.lastupgardecost
                         loop this.IterativeReads {
-                            if (ucache!=this.lastupgardecost) {
-                                if (this.OCRgetupgradeprice()!=ucache) {
-                                    break
-                                } else {
-                                    Sleep(800/this.IterativeReads)
-                                }
-                            } 
+                            seconducache := this.OCRgetupgradeprice()
+                            if (seconducache!=ucache && seconducache!=0) {
+                                break
+                            } else {
+                                Sleep(800/this.IterativeReads)
+                            }
                         }
                     }
                 }
@@ -711,6 +710,9 @@ class TDSmacro {
 
     static clickready() {
         this.lost := false
+        this.lastupgardecost := 0
+        this.selectingtower := false
+        this.lasttowercord := [100, 100]
         if (this.UseTimescale == true) {
             this.Timescale()
         }
@@ -723,9 +725,9 @@ class TDSmacro {
             }
             if (pos := this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
                 MouseMove(pos.x, pos.y)
-                Sleep(50)
+                Sleep(150)
                 FindText().Click(pos.x, pos.y, "L")
-                Sleep(100)
+                Sleep(150)
                 break
             }
         }
@@ -854,6 +856,8 @@ class TDSmacro {
         Sleep(50)
         Send(key)
         Sleep(50)
+        prevCord := this.lasttowercord
+        prevSelecting := this.selectingtower
         try {
             if (IsSet(x)==true && IsSet(y)==true) {
                 place := (place = true || place = false) ? place : false
@@ -864,8 +868,8 @@ class TDSmacro {
                 }
             }
         }
-        if (this.selectingtower==true) {
-            this.selecttower(this.lasttowercord[1],this.lasttowercord[2])
+        if (prevSelecting==true) {
+            this.selecttower(prevCord[1],prevCord[2])
         }
     }
 
