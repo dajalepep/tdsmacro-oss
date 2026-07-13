@@ -155,9 +155,9 @@ class TDSmacro {
                 NumPut("UInt", APPBARDATA.Size, APPBARDATA, 0)
                 state := DllCall("Shell32\SHAppBarMessage", "UInt", 4, "Ptr", APPBARDATA, "UInt")
                 if (state & 1) {
-                    this.logTodc("TDSmacro v1.2 Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    this.logTodc("TDSmacro v1.2 Snapshot Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
-                    this.logTodc("TDSmacro v1.2 Taskbar Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    this.logTodc("TDSmacro v1.2 Snapshot Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 }
             }
         }
@@ -617,7 +617,7 @@ class TDSmacro {
             this.logTodc("bro loses hope maybe i hallucinate map, imma rejoin rq")
             this.rejoin()
         }
-        if (this.Find(this.disconnectedtext)) {
+        if (this.Find(this.disconnectedtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
             this.loses := 0
             this.logScreenshot("bro got disconnected get a better wifi")
@@ -1189,7 +1189,7 @@ class TDSmacro {
             }
             Sleep(80)
             if (pos := this.Find(this.solotext, 0.18, 0.05,550,330,960,560)) {
-                FindText().Click(pos.x, pos.y+100, "L")
+                FindText().Click(pos.x, pos.y-100, "L")
                 break
             }
         }
