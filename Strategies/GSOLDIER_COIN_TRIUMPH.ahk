@@ -53,7 +53,7 @@ CalibrateLabel(HotkeyName) {
 }
 
 F4::{
-    TDSmacro.rejoin()
+    TDSmacro.upgradeuntil(2)
 }
 
 StartLabel(HotkeyName) {

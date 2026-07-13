@@ -77,6 +77,8 @@ class TDSmacro {
     static TimescaleUntil:=1
     static lastupgardecost := 0
     static selectingtower := false
+    static UseRapidOCR := true
+    static hModule := 0
     static whr := ComObject("WinHttp.WinHttpRequest.5.1")
     static __New() {
         SplitPath(A_LineFile, , &moduleDir)
@@ -100,6 +102,20 @@ class TDSmacro {
 
         UseTimescale := IniRead(iniPath, "Settings", "UseTimescale", "false")
         this.UseTimescale := (UseTimescale = "true" || UseTimescale = "1")
+
+        UseRapidOCR := IniRead(iniPath, "Settings", "UseRapidOCR", "true")
+        this.UseRapidOCR := (UseRapidOCR = "true" || UseRapidOCR = "1")
+
+        if (this.UseRapidOCR) {
+            DllCall("SetDllDirectory", "Str", moduleDir "\bin")
+            this.hModule := DllCall("LoadLibrary", "Str", moduleDir "\bin\libRapidOCR_v6.dll", "Ptr")
+            if (!this.hModule) {
+                this.UseRapidOCR := false
+                if (this.debug) {
+                    this.logTodc("Failed to load libRapidOCR_v6.dll during initialization. Falling back to standard OCR. Error: " A_LastError)
+                }
+            }
+        }
 
             ; 3. Read default patience (default to 150, and convert to integer safely)
         try {
@@ -132,7 +148,6 @@ class TDSmacro {
         } catch {
             this.colorconfidence := 0.05
         }
-
 
         try {
             if (this.debug == true) {
@@ -308,6 +323,45 @@ class TDSmacro {
     ; Clean internal helper method to find images safely
     static Find(img, err1_mod:=0, err2_mod:=0, fromx:=0, fromy:= 0, tox:= A_ScreenWidth, toy:= A_ScreenHeight) {
         ; FindText V2 returns an array of objects if found, or false if not
+        if (this.debug == true) {
+            try {
+                w := Abs(tox - fromx)
+                h := Abs(toy - fromy)
+                startX := Min(tox, fromx)
+                startY := Min(toy, fromy)
+    
+                ; 2. Find target window and convert Client coordinates to true Screen coordinates
+                targetWin := (IsSet(process) && process != "") ? process : "A"
+                hwnd := WinExist(targetWin)
+                if !hwnd {
+                    hwnd := WinExist("A")
+                } 
+                pt := Buffer(8, 0)
+                NumPut("int", startX, pt, 0)
+                NumPut("int", startY, pt, 4)
+    
+                ; Map the internal Client coordinate to the exact pixel location on your Monitor
+                DllCall("User32.dll\ClientToScreen", "Ptr", hwnd, "Ptr", pt)
+                screenX := NumGet(pt, 0, "int")
+                screenY := NumGet(pt, 4, "int")
+
+                ; 3. Handle Debug Box Presentation
+                DebugGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20") ; E0x20 makes it click-through
+                DebugGui.BackColor := "0000FF" ; Red color
+        
+                ; Inner cutout to make it a hollow border instead of a solid block
+                WinSetTransColor("EEAA99", DebugGui) 
+                DebugGui.MarginX := 0
+                DebugGui.MarginY := 0
+        
+                ; Draw a thick red outline (using a placeholder background element)
+                DebugGui.Add("Text", "x2 y2 w" (w-4) " h" (h-4) " BackgroundEEAA99") 
+        
+                ; Show the box, wait 1 second, then destroy it automatically
+                DebugGui.Show("x" screenX " y" screenY " w" w " h" h " NoActivate")
+                SetTimer(() => DebugGui.Destroy(), -1000) ; Negative time means run once
+            }
+        }
         if (ok := FindText(&locX, &locY, fromx, fromy, tox, toy, this.pixelconfidence + err1_mod, this.colorconfidence + err2_mod, img)) {
             return {x: locX, y: locY}
         }
@@ -315,15 +369,99 @@ class TDSmacro {
     }
 
     static ocrwindowread(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=2,gray:=0,process:=unset) {
-        gray := gray ? 1 : 0
-        if (IsSet(process)==0) {
-            try {
-                process := "ahk_exe " WinGetProcessName("A")
-            } catch {
-                process := "ahk_exe RobloxPlayerBeta.exe"
-            } 
+        ; 1. Pre-calculate structural dimensions
+        w := Abs(x2 - x1)
+        h := Abs(y2 - y1)
+        startX := Min(x1, x2)
+        startY := Min(y1, y2)
+    
+        ; 2. Find target window and convert Client coordinates to true Screen coordinates
+        targetWin := (IsSet(process) && process != "") ? process : "A"
+        hwnd := WinExist(targetWin)
+        if !hwnd {
+            hwnd := WinExist("A")
+        } 
+        pt := Buffer(8, 0)
+        NumPut("int", startX, pt, 0)
+        NumPut("int", startY, pt, 4)
+    
+        ; Map the internal Client coordinate to the exact pixel location on your Monitor
+        DllCall("User32.dll\ClientToScreen", "Ptr", hwnd, "Ptr", pt)
+        screenX := NumGet(pt, 0, "int")
+        screenY := NumGet(pt, 4, "int")
+
+        ; 3. Handle Debug Box Presentation
+        if (this.debug == true) {
+            DebugGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20") ; E0x20 makes it click-through
+            DebugGui.BackColor := "FF0000" ; Red color
+        
+            ; Inner cutout to make it a hollow border instead of a solid block
+            WinSetTransColor("EEAA99", DebugGui) 
+            DebugGui.MarginX := 0
+            DebugGui.MarginY := 0
+        
+            ; Draw a thick red outline (using a placeholder background element)
+            DebugGui.Add("Text", "x2 y2 w" (w-4) " h" (h-4) " BackgroundEEAA99") 
+        
+            ; Show the box, wait 1 second, then destroy it automatically
+            DebugGui.Show("x" screenX " y" screenY " w" w " h" h " NoActivate")
+            SetTimer(() => DebugGui.Destroy(), -1000) ; Negative time means run once
         }
-        return OCR.FromWindow(process, {x: x1, y: y1, w: x2-x1, h: y2-y1, scale: Scale, grayscale: gray})
+
+        ; 4. Route to the chosen OCR Method
+        if (this.UseRapidOCR == false) {
+            gray := gray ? 1 : 0
+            if (IsSet(process) == 0) {
+                try {
+                    process := "ahk_exe " WinGetProcessName("A")
+                } catch {
+                    process := "ahk_exe RobloxPlayerBeta.exe"
+                } 
+            }
+            ; Native Behavior: Uses window-relative client coordinates
+            return OCR.FromWindow(process, {x: startX, y: startY, w: w, h: h, scale: Scale, grayscale: gray})
+        } else {
+            try {
+                ; Native Behavior: Uses absolute screen coordinates calculated above
+                buf := ImagePutBuffer({
+                    image: [screenX, screenY, w, h],
+                    scale: Scale
+                })
+    
+                if (!buf) {
+                    Throw Error("Failed to capture region using ImagePutBuffer")
+                }
+            
+                SplitPath(A_LineFile, , &moduleDir)
+                optionsJson := '{'
+                . '"det_model_path": "' EscapePath(moduleDir "\models\ch_PP-OCRv6_det_small_infer.onnx") '",'
+                . '"rec_model_path": "' EscapePath(moduleDir "\models\ch_PP-OCRv6_rec_small_infer.onnx") '",'
+                . '"cls_model_path": "' EscapePath(moduleDir "\models\ch_ppocr_mobile_v2.0_cls_infer.onnx") '",'
+                . '"only_text": true,'
+                . '"use_cls": false,'
+                . '"limit_type": "max"'
+                . '}'
+    
+                ; Call the zero-copy DLL function
+                pStr := DllCall("libRapidOCR_v6\RapidOcrFromRawPixels", 
+                "ptr", buf.ptr, 
+                "int", buf.width, 
+                "int", buf.height, 
+                "int", 4,          ; 4 bytes per pixel (BGRA)
+                "int", buf.stride, ; Pitch
+                "AStr", optionsJson, 
+                "ptr")
+    
+                if (pStr) {
+                    extractedText := StrGet(pStr, "utf-8")
+                    return {Text: extractedText}
+                }
+                return {Text: ""}
+            } catch Error as err {
+                MsgBox(err.Message)
+                return {Text: ""}
+            }
+        }
     }
 
     static OCRawaitmoney(n := 0) {
@@ -351,7 +489,7 @@ class TDSmacro {
             try {
                 currentmoney := Integer(RegExReplace(findresult.Text, "[^\d]"))
                 if (this.debug == true) {
-                    ToolTip("Currentmoney: " currentmoney)
+                    ToolTip("Currentmoney: " currentmoney " Saving for $" n)
                 }
                 if (currentmoney >= n) {
                     break
@@ -362,35 +500,36 @@ class TDSmacro {
 
     static OCRgetupgradeprice() {
         result := this.ocrwindowread(925,560,1280,890)
-        tablefromresult := StrSplit(RegExReplace(result.Text, "`r`n", " "), " ")
+        tablefromresult := StrSplit(RegExReplace(result.Text, "[^\w!@#$%^&*()$+= \-}{\]\[|\\:;.\x22'?><,/]"), " ")
     
-        price := 0
-        for i, v in tablefromresult {
-            if (InStr(v, "$")) {
-                cache := 0
-                try {
-                    cache := Integer(RegExReplace(v, "[^\d]"))
-                    if (this.debug == true) {
-                        ToolTip("Price found at: " cache)
-                    }
+        if (!result || !result.Text)
+        return 0
+
+        price := 0 
+        if RegExMatch(result.Text, "\$(\d+[\d,.]*)", &match) {
+            try {
+                cleanPrice := RegExReplace(match[1], "[^\d]")
+                cache := Integer(cleanPrice)
+            
+                if (this.debug == true) { 
+                    ToolTip("Price found at: " cache) 
                 }
+            
                 if (cache != 0) {
-                    if (price == 0) {
-                        price := cache
-                    }
-                    if (price > cache) {
-                        price := cache
-                    }
+                    price := cache
                 }
+            } catch {
+                price := 0
             }
         }
-        if (price!=0) {
-            this.lastupgardecost := price
-            if (this.debug==true) {
-                this.logTodc("Upgrade Price found at $" price)
-            }
+    
+        if (price != 0) { 
+            this.lastupgardecost := price 
+            if (this.debug == true) { 
+                this.logTodc("Upgrade Price found at $" price) 
+            } 
         }
-        return price
+        return price 
     }
 
     static Timescale() {
@@ -507,6 +646,23 @@ class TDSmacro {
         }
     }
 
+    static ParseLevel(text) {
+        if RegExMatch(text, "i)Level:\s*([0-5OISois])", &match) {
+            val := match[1]
+            if (val = "O" || val = "o") {
+                return 0
+            }
+            if (val = "I" || val = "i") {
+                return 1
+            }
+            if (val = "S" || val = "s") {
+                return 5
+            }
+            return Number(val)
+        }
+    return -1
+    }
+
     static upgradeuntil(lvl) {
         if (this.checklost() == true) {
             return
@@ -520,33 +676,32 @@ class TDSmacro {
             loop this.IterativeReads {
                 if (res==-1) {
                     result := this.ocrwindowread(625,560,925,890,2,true)
-                    level := -1
-                    pos:=InStr(result.Text, "Level:")
-                    try {
-                        if !(pos=0) {
-                            cache := StrReplace(StrReplace(StrReplace(SubStr(result.Text,pos+7,1), "O", "0"), "I", "1"), "S", "5")
-                            level := (RegExReplace(cache, "[^\d]")="") ? -1 : Number(RegExReplace(cache, "[^\d]"))
-                        }
-                    }
-                    res := level
+                    res := this.ParseLevel(result.Text)
                     Sleep(50)
                 }
             }
 
-            if (res != -1 && lvl-res > 1) {
+            if (res!=-1) {
                 if (this.debug == true) {
                     ToolTip("This tower is level: " res)
+                    this.logTodc("This tower is level: " res)
                 }
+            }
+
+            if (res != -1 && res >= lvl) {
+                return
+            }
+
+            if (res != -1 && lvl-res > 1) {
                 loop (lvl-res) {
                     this.upgradeuntil(res+A_Index)
                     if (this.checklost() == false) {
                         ucache := this.lastupgardecost
                         loop this.IterativeReads {
+                            Sleep(100)
                             seconducache := this.OCRgetupgradeprice()
                             if (seconducache!=ucache && seconducache!=0) {
                                 break
-                            } else {
-                                Sleep(800/this.IterativeReads)
                             }
                         }
                     }
@@ -560,6 +715,7 @@ class TDSmacro {
                     upgradeprice := cache
                     break
                 }
+                Sleep(50)
             }
             if (upgradeprice != 0) {
                 this.OCRawaitmoney(upgradeprice)
@@ -567,37 +723,12 @@ class TDSmacro {
         }
         loopstartedat := A_TickCount
         while (true) {
-            Sleep(50)
-            Send("e")
-            this.skipable(true)
-            this.insanitycheck(loopstartedat)
-            if (this.checklost() == true) {
-                break
-            }
-
             found := false
-
             loop this.IterativeReads {
                 if (found == false) {
                     if (this.UseOCR == true) {
                         result := this.ocrwindowread(625,560,925,890,2,true)
-                        level := -1
-                        pos:=InStr(result.Text, "Level:")
-                        try {
-                            if !(pos=0) {
-                                cache := SubStr(result.Text,pos+7,1)
-                                if (cache="O") {
-                                    cache:=0
-                                }
-                                if (cache="I") {
-                                    cache:=1
-                                }
-                                if (cache="S") {
-                                    cache:=5
-                                }
-                                level:= (RegExReplace(cache, "[^\d]")="") ? -1 : Number(RegExReplace(cache, "[^\d]"))
-                            }
-                        }
+                        level := this.ParseLevel(result.Text)
                         if (level >= lvl) {
                             found := true
                         }
@@ -610,7 +741,14 @@ class TDSmacro {
             }
             if (found == true) {
                 break
-            } 
+            }
+            Sleep(50)
+            Send("e")
+            this.skipable(true)
+            this.insanitycheck(loopstartedat)
+            if (this.checklost() == true) {
+                break
+            }
         }
     }
 
@@ -825,7 +963,7 @@ class TDSmacro {
                             found := true
                         }
                     }
-                    Sleep(Floor(800/this.IterativeReads))
+                    Sleep(20)
                 }
             }
             if (found == true) {
@@ -886,13 +1024,13 @@ class TDSmacro {
         if (this.debug == True) {
             this.logTodc("Calibrating camera")
         }
-        MouseMove(A_ScreenWidth // 2, 100, 5)
-        Sleep(100)
+        MouseMove(A_ScreenWidth // 2, 100)
+        Sleep(200)
         Click("Right Down")
-        MouseMove(A_ScreenWidth // 2, (A_ScreenHeight * 3) // 4, 8)
+        MouseMove(A_ScreenWidth // 2, (A_ScreenHeight * 3) // 4)
         Sleep(200)
         Click("Right Up")
-        Sleep(150)
+        Sleep(50)
         Send("{WheelDown 50}")
     }
     static newgamesetup() {
@@ -1051,7 +1189,7 @@ class TDSmacro {
             }
             Sleep(80)
             if (pos := this.Find(this.solotext, 0.18, 0.05,550,330,960,560)) {
-                FindText().Click(pos.x, pos.y, "L")
+                FindText().Click(pos.x, pos.y+100, "L")
                 break
             }
         }
@@ -1063,5 +1201,10 @@ class TDSmacro {
 
 }
 
+EscapePath(path) {
+    return StrReplace(path, "\", "/")
+}
+
 #Include FindText.ahk
 #Include OCR.ahk
+#Include ImagePut.ahk
