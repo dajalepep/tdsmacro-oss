@@ -28,11 +28,12 @@ class TDSmacro {
     static triumphtext := "|<>*136$43.00000C00000070000003U000001k000000s000000Q000000C00000070Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0DzU0zzU7zk0Tzk3zs0Dzs1zw07zw0zy03zy0Tz01zz0DzU0zzU7zk0Tzk2"
     static playtext := "|<>*166$55.07szzky7w00wTzsTXy00CDzs7ky8y77zw3wS4TVXzy8y76DklzyATV77sMzz67s3XsQTz7Xw3k0CDzXkz1s0D7zU0TVw0TXzk0DsyDzlzk03wT7zs08zlyDXzw04TsT7lzy00TyDXw"
     static corneredAtext := "|<>*127$14.3w7ztzyTDjnzsTyrz0xriTzbzsDkU"
+    static closemark := "|<>*175$24.xzzjszz7kTy3UDw107s0U3k1k1U3s007w00Dy00Tz00zzU1zzU1zz00zy00Tw00Ds007k1U3U3k107s0UDw1kTy3szz7xzzjU"
     static giveuptolarance := 2
     static loses := 0
     static rejoining := false
     static UseOCR := true
-    static sandclockimg := "|<>*137$22.0sQ07zs0TzU1zy0Dnw0jDE6wxUPzq1Dz84QsUE02300AQ00tk03b00CSQtttzbjbyTyQtxxnjXzzw7zzW" ;to check if player is on the uhh vote for a map type shi
+    static inventoryimg := "|<>*137$22.0sQ07zs0TzU1zy0Dnw0jDE6wxUPzq1Dz84QsUE02300AQ00tk03b00CSQtttzbjbyTyQtxxnjXzzw7zzW" ;to check if player is on the uhh vote for a map type shi
     static solotext := "|<>*142$66.zzzzzzw3zzzy0Dzzzw3zzzs03zzzw3zzzU03zzzw3zzzU03zzzw3zzz003zzzw3zzz0zbz0Dw3y0T0zzw03w7s070Tzs01w7k0303zk00w7U01U0DU60w70A1k03UT0Q70y0s01UTUQ70z0z01UTUQ70z0zw1UTUQ70z0zy0UTUQ70z0bz1UT0Q70y0Uy1k60w7UA1001k00w7U01003s01w7k03007w03w7s07k0Tz0Dw7y0TU"
     static disconnectedtext := "|<>*147$115.zzbzzzzzzzzzzzzzzzy0TXzzzzzzzzzzzzbzzz03tzzzzzzzzzzzznzzzVkzzzzzzzzzzzzztzzzkyDzzzzzzzzzzzzwzzzsT6D3wDVsVsVy3w83Uy4DX60s30Q0Q0S0s01UC07tX6sP766C6CCMPbXa63wlXwTXn7b7bDYTnnt7VwMsSTnsXnXnU2Tts0XkyAS3DtwFtltk1Dww0FsTCDtXwSMwswtzXySTswC76QkyCASQSQSkz77gQ07X0Q1UCDCDD0Q1Uk700DlkT1sD7b7bsT1sS7kY"
     static maps := [
@@ -329,37 +330,14 @@ class TDSmacro {
                 h := Abs(toy - fromy)
                 startX := Min(tox, fromx)
                 startY := Min(toy, fromy)
-    
-                ; 2. Find target window and convert Client coordinates to true Screen coordinates
-                targetWin := (IsSet(process) && process != "") ? process : "A"
-                hwnd := WinExist(targetWin)
-                if !hwnd {
-                    hwnd := WinExist("A")
-                } 
-                pt := Buffer(8, 0)
-                NumPut("int", startX, pt, 0)
-                NumPut("int", startY, pt, 4)
-    
-                ; Map the internal Client coordinate to the exact pixel location on your Monitor
-                DllCall("User32.dll\ClientToScreen", "Ptr", hwnd, "Ptr", pt)
-                screenX := NumGet(pt, 0, "int")
-                screenY := NumGet(pt, 4, "int")
-
-                ; 3. Handle Debug Box Presentation
-                DebugGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20") ; E0x20 makes it click-through
-                DebugGui.BackColor := "0000FF" ; Red color
-        
-                ; Inner cutout to make it a hollow border instead of a solid block
+                DebugGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
+                DebugGui.BackColor := "0000FF"
                 WinSetTransColor("EEAA99", DebugGui) 
                 DebugGui.MarginX := 0
                 DebugGui.MarginY := 0
-        
-                ; Draw a thick red outline (using a placeholder background element)
                 DebugGui.Add("Text", "x2 y2 w" (w-4) " h" (h-4) " BackgroundEEAA99") 
-        
-                ; Show the box, wait 1 second, then destroy it automatically
-                DebugGui.Show("x" screenX " y" screenY " w" w " h" h " NoActivate")
-                SetTimer(() => DebugGui.Destroy(), -1000) ; Negative time means run once
+                DebugGui.Show("x" startX " y" startY " w" w " h" h " NoActivate")
+                SetTimer(() => DebugGui.Destroy(), -1000)
             }
         }
         if (ok := FindText(&locX, &locY, fromx, fromy, tox, toy, this.pixelconfidence + err1_mod, this.colorconfidence + err2_mod, img)) {
@@ -368,7 +346,7 @@ class TDSmacro {
         return false
     }
 
-    static ocrwindowread(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=2,gray:=0,process:=unset) {
+    static ocrwindowread(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=1,gray:=0,process:=unset) {
         ; 1. Pre-calculate structural dimensions
         w := Abs(x2 - x1)
         h := Abs(y2 - y1)
@@ -499,7 +477,7 @@ class TDSmacro {
     }
 
     static OCRgetupgradeprice() {
-        result := this.ocrwindowread(925,560,1280,890)
+        result := this.ocrwindowread(1030,630,1180,845,1)
         tablefromresult := StrSplit(RegExReplace(result.Text, "[^\w!@#$%^&*()$+= \-}{\]\[|\\:;.\x22'?><,/]"), " ")
     
         if (!result || !result.Text)
@@ -553,7 +531,7 @@ class TDSmacro {
                 break
             }
             Sleep(300)
-            result := this.ocrwindowread(820,410,1110,700,2,true)
+            result := this.ocrwindowread(820,410,1110,700)
             pos := InStr(result.Text, "You have ")
             if (pos != 0) {
                 try {
@@ -639,7 +617,7 @@ class TDSmacro {
             Sleep(50)
             MouseMove(savedX, savedY)
             try {
-                if (ontower == true && InStr(this.ocrwindowread(625,560,925,890,2,true).Text,"Level:") == 0) {
+                if (ontower == true && InStr(this.ocrwindowread(665,780,755,800,1).Text,"Level:") == 0) {
                     this.selecttower(this.lasttowercord[1],this.lasttowercord[2])
                 }
             }
@@ -675,7 +653,7 @@ class TDSmacro {
             res := -1
             loop this.IterativeReads {
                 if (res==-1) {
-                    result := this.ocrwindowread(625,560,925,890,2,true)
+                    result := this.ocrwindowread(665,780,755,800,1)
                     res := this.ParseLevel(result.Text)
                     Sleep(50)
                 }
@@ -727,7 +705,7 @@ class TDSmacro {
             loop this.IterativeReads {
                 if (found == false) {
                     if (this.UseOCR == true) {
-                        result := this.ocrwindowread(625,560,925,890,2,true)
+                        result := this.ocrwindowread(665,780,755,800,1)
                         level := this.ParseLevel(result.Text)
                         if (level >= lvl) {
                             found := true
@@ -780,12 +758,13 @@ class TDSmacro {
             Sleep(50)
             OCRplaced := false
             if (this.UseOCR == true) {
-                loop this.IterativeReads {
+                loop this.IterativeReads + 5 {
                     MouseGetPos(&mx,&my)
                     rescr := this.ocrwindowread(mx+5,my-85,mx+245,my-60)
                     if (InStr(rescr.Text,"Tower")) {
                         Send("q")
                         this.selecttower(a,b)
+                        Sleep(100)
                         return
                     }
                     if (OCRplaced == false) {
@@ -794,13 +773,13 @@ class TDSmacro {
                             OCRplaced := true
                             break
                         }
-                        result := this.ocrwindowread(625,560,925,890,2,true)
+                        result := this.ocrwindowread(665,780,755,800,1)
                         pos:=InStr(result.Text, "Level:")
                         if (pos != 0) {
                             OCRplaced := true
                             break
                         }
-                        Sleep(50)
+                        Sleep(100)
                     }
                 }
             } else {
@@ -817,7 +796,7 @@ class TDSmacro {
             loop this.IterativeReads*mult {
                 if (found == false) {
                     if (this.UseOCR == true) {
-                        result := this.ocrwindowread(625,560,925,890,2,true)
+                        result := this.ocrwindowread(665,780,755,800,1)
                         level := -1
                         pos:=InStr(result.Text, "Level:")
                         if (pos != 0) {
@@ -948,36 +927,28 @@ class TDSmacro {
                 break
             }
             Click(targetX, targetY)
-            found := false
-            loop this.IterativeReads {
-                if (found == false) {
-                    if (this.UseOCR == true) {
-                        result := this.ocrwindowread(625,560,925,890,2,true)
-                        level := -1
-                        pos:=InStr(result.Text, "Level:")
-                        if (pos != 0) {
-                            found := true
-                        }
-                    } else {
-                        if (this.Find(this.leveltext,0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
-                            found := true
-                        }
+            Sleep(300)
+            loop this.IterativeReads*4 {
+                if (this.UseOCR == true) {
+                    result := this.ocrwindowread(665,720,755,850,1)
+                    level := -1
+                    pos:=InStr(result.Text, "Level:")
+                    if (pos != 0) {
+                        this.lasttowercord := [a,b]
+                        this.selectingtower := true
+                        return
                     }
-                    Sleep(20)
+                } else {
+                    if (this.Find(this.leveltext,0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
+                        this.lasttowercord := [a,b]
+                        this.selectingtower := true
+                        return
+                    }
                 }
             }
-            if (found == true) {
-                break
-            }
             it++
-            if (Mod(it,10)==0) {
-                click(100,100)
-                this.selectingtower := false
-            }
-            Sleep(50)
+            Sleep(20)
         }
-        this.lasttowercord := [a,b]
-        this.selectingtower := true
     }
 
     static ChangeTrack(right:=1,abilities:=0,mercshift:=1) {
@@ -1044,7 +1015,7 @@ class TDSmacro {
             if (this.insanitycheck(loopstartedat) == true) {
                 return
             }
-            if (this.Find(this.sandclockimg, 0.15, 0.05)) {
+            if (this.Find(this.inventoryimg, 0.15, 0.05, 700, 840, 740, 880)) {
                 break
             }
         }
@@ -1166,7 +1137,7 @@ class TDSmacro {
                 MouseGetPos(&savedX, &savedY)
                 MouseMove(pos.x, pos.y, 5)
                 Sleep(50)
-                Click(pos.x, pos.y, "L")
+                Click(pos.x, pos.y)
                 Sleep(50)
                 MouseMove(savedX, savedY, 5)
                 break
@@ -1175,10 +1146,20 @@ class TDSmacro {
         if (this.debug == True) {
             this.logTodc("Play text found")
         }
-        Sleep(3500)
+        loopstartedat := A_TickCount
+        while (true) {
+            if (this.insanitycheck(loopstartedat) == true) {
+                return
+            }
+            if (pos := this.Find(this.closemark, 0.05, 0.05,1160, 250, 1210, 300)) {
+                Sleep(200)
+                break
+            }
+            Sleep(50)
+        }
         cache := this.ArrayAutoCorrectSearch(this.gamemode,this.gamemodes)
         Click((cache[3]-1)*250+this.gamesorigin[1],this.gamesorigin[2])
-        Sleep(1500)
+        Sleep(500)
         if (cache[1] = this.gamemodes[3]) {
             Click((this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]-1)*250-125+this.gamesorigin[1],this.gamesorigin[2])
         }
@@ -1189,7 +1170,7 @@ class TDSmacro {
             }
             Sleep(80)
             if (pos := this.Find(this.solotext, 0.18, 0.05,550,330,960,560)) {
-                FindText().Click(pos.x, pos.y-100, "L")
+                Click(pos.x, pos.y-100)
                 break
             }
         }

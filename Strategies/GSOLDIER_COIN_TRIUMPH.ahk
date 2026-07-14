@@ -53,7 +53,8 @@ CalibrateLabel(HotkeyName) {
 }
 
 F4::{
-    TDSmacro.upgradeuntil(2)
+    MouseGetPos(&mx,&my)
+    TDSmacro.canplace(mx,my,"1",450)
 }
 
 StartLabel(HotkeyName) {

@@ -5,12 +5,12 @@ CoordMode("Mouse", "Window")
 OCR.DisplayImage := 1
 
 F1:: {
-    X1 := 925
-    Y1 := 560
-    result := TDSmacro.ocrwindowread(X1,Y1,X1+355,Y1+330,2)
+    X1 := 1030
+    Y1 := 630
+    start := A_TickCount
+    result := TDSmacro.ocrwindowread(X1,Y1,1180,845,2)
     ; Split text by spaces OR newlines to catch words cleanly
     tablefromresult := StrSplit(RegExReplace(result.Text, "`r`n", " "), " ")
-    MsgBox(result.Text)
     
     price := ""
     twopath := False
@@ -32,20 +32,21 @@ F1:: {
     
     ; 3. Handle the Tooltips correctly based on states
     if (twopath == True) {
-        ToolTip "Its 2path bro 😭"
+        ToolTip "Its 2path bro 😭 Time: " A_TickCount-start
     } else if (price == "") {
-        ToolTip "nothing was found son"
+        ToolTip "nothing was found son Time: " A_TickCount-start
     } else {
-        ToolTip "Price: " price
+        ToolTip "Price: " price " Time: " A_TickCount-start
     }
     
     SetTimer () => ToolTip(), -3000
 }
 
 F4:: {
-    X1 := 625
-    Y1 := 560
-    result := TDSmacro.ocrwindowread(X1,Y1,X1+300,Y1+330,2)
+    X1 := 666
+    Y1 := 800-20
+    start := A_TickCount
+    result := TDSmacro.ocrwindowread(X1,Y1,755,800,2)
     
     ; Split text by spaces OR newlines to catch words cleanly
     level := -1
@@ -67,9 +68,9 @@ F4:: {
     }
     
     if (level=-1) {
-        ToolTip "nothing here"
+        ToolTip "nothing here " A_TickCount - start " ms"
     } else {
-        ToolTip level
+        ToolTip level "Time:" A_TickCount - start " ms"
     }
     
     SetTimer () => ToolTip(), -3000
