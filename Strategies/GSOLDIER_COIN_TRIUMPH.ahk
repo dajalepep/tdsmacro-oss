@@ -17,8 +17,8 @@ TDSmacro.survivalmode := "Easy"
 ; Coordinate Modes Setup for AHK v2
 CoordMode("Mouse", "Window")
 
-leftsoldiers := [[890,130]]
-rightsoldiers := [[975,130]]
+leftsoldiers := [[888,180]]
+rightsoldiers := [[975,180]]
 soldiers := []
 
 loop 4 {
@@ -65,14 +65,14 @@ StartLabel(HotkeyName) {
         early := 0
         for i,v in soldiers {
             placeprice := 450
-            if early < 2 {
+            if early < 1 {
                 placeprice := 0
                 early+=1
             }
             TDSmacro.canplace(v[1],v[2],"1",placeprice)
             TDSmacro.upgradeuntil(2)
         }
-        TDSmacro.autoskip:=false
+        ;TDSmacro.autoskip:=false
         for i,v in soldiers {
             TDSmacro.selecttower(v[1],v[2])
             TDSmacro.upgradeuntil(3)

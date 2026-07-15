@@ -615,7 +615,7 @@ class TDSmacro {
             ;FindText().Click(pos.x, pos.y, "L")
             Click(1023,217)
             Sleep(50)
-            MouseMove(savedX, savedY)
+            MouseMove(savedX, savedY, 0)
             try {
                 if (ontower == true && InStr(this.ocrwindowread(665,780,755,800,1).Text,"Level:") == 0) {
                     this.selecttower(this.lasttowercord[1],this.lasttowercord[2])
@@ -648,7 +648,7 @@ class TDSmacro {
         if (this.debug == True) {
             this.logTodc("Attempting to upgrade until lvl " lvl)
         }
-        MouseMove(100, 100)
+        MouseMove(100, 100, 0)
         if (this.UseOCR == true) {
             res := -1
             loop this.IterativeReads {
@@ -755,7 +755,7 @@ class TDSmacro {
             targetY := this.Clamp(b + offsetY*this.PositiveSquash(it), 32, 1032)
         
             Click(targetX, targetY)
-            Sleep(50)
+            Sleep(200)
             OCRplaced := false
             if (this.UseOCR == true) {
                 loop this.IterativeReads + 5 {
@@ -887,7 +887,7 @@ class TDSmacro {
         this.rejoining := false
         loopstartedat := A_TickCount
         while (true) {
-            MouseMove(100, 100)
+            MouseMove(100, 100, 0)
             Sleep(80)
             if (this.insanitycheck(loopstartedat) == true) {
                 loopstartedat := A_TickCount
@@ -995,7 +995,7 @@ class TDSmacro {
         if (this.debug == True) {
             this.logTodc("Calibrating camera")
         }
-        MouseMove(A_ScreenWidth // 2, 100)
+        MouseMove(A_ScreenWidth // 2, 100, 0)
         Sleep(200)
         Click("Right Down")
         MouseMove(A_ScreenWidth // 2, (A_ScreenHeight * 3) // 4)
@@ -1008,7 +1008,7 @@ class TDSmacro {
         if (this.debug == True) {
             this.logTodc("newgamesetup function is called")
         }
-        MouseMove(100, 100)
+        MouseMove(100, 100, 0)
         loopstartedat := A_TickCount
         while (true) {
             Sleep(80)
@@ -1028,6 +1028,8 @@ class TDSmacro {
         Sleep(6000)
 
         this.votemodifiers()
+
+        Sleep(150)
 
         this.CalibrateCam()
         Sleep(200)
@@ -1093,6 +1095,7 @@ class TDSmacro {
                 break
             }
         }
+        Sleep(150)
         this.CalibrateCam()
     }
 
@@ -1139,7 +1142,7 @@ class TDSmacro {
                 Sleep(50)
                 Click(pos.x, pos.y)
                 Sleep(50)
-                MouseMove(savedX, savedY, 5)
+                MouseMove(savedX, savedY)
                 break
             }
         }
