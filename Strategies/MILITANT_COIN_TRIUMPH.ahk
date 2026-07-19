@@ -9,7 +9,7 @@ start := "F1"
 calibratecam := "F2"
 
 TDSmacro.goal := "Triumph"
-TDSmacro.modifiersarrayinput := ["Hidden", "Glass", "Explod", "Limit", "Com", "Fly"]
+TDSmacro.modifiersInput := ["Hidden", "Glass", "Explod", "Limit", "Com", "Fly"]
 TDSmacro.map := "Dead Ahead"
 TDSmacro.survivalmode := "Easy"
 
@@ -17,8 +17,8 @@ TDSmacro.survivalmode := "Easy"
 ; Coordinate Modes Setup for AHK v2
 CoordMode("Mouse", "Window")
 
-leftmilitants := [[890,130]]
-rightmilitants := [[975,130]]
+leftmilitants := [[889,165]]
+rightmilitants := [[975,165]]
 militants := []
 
 loop 4 {
@@ -49,14 +49,14 @@ ExitLabel(HotkeyName) {
 }
 
 CalibrateLabel(HotkeyName) {
-    TDSmacro.CalibrateCam()
+    TDSmacro.CalibrateCamera()
 }
 
 StartLabel(HotkeyName) {
     while (true) {
         TDSmacro.lost := false
         TDSmacro.autoskip := true
-        TDSmacro.clickready()
+        TDSmacro.StartMatch()
         early := 0
         for i,v in militants {
             placeprice := 600
@@ -64,19 +64,19 @@ StartLabel(HotkeyName) {
                 placeprice := 0
                 early+=1
             }
-            TDSmacro.canplace(v[1],v[2],"1",placeprice)
-            TDSmacro.upgradeuntil(1)
+            TDSmacro.PlaceTower(v[1],v[2],"1",placeprice)
+            TDSmacro.UpgradeUntilLevel(1)
         }
         TDSmacro.autoskip:=false
         index := 2
         loop 3 {
             for i,v in militants {
-                TDSmacro.selecttower(v[1],v[2])
-                TDSmacro.upgradeuntil(index)
+                TDSmacro.TowerSelect(v[1],v[2])
+                TDSmacro.UpgradeUntilLevel(index)
             }
             index+=1
         }
 
-        TDSmacro.restartonlost()
+        TDSmacro.RestartMatch()
     }
 }

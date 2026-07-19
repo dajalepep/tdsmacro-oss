@@ -5,8 +5,8 @@
 ; now moving a few stuff to ocr i hope it will go better
 class TDSmacro {
     static lost := false
-    static pixelconfidence := 0.05 
-    static colorconfidence := 0.05 
+    static pixelConfidence := 0.05 
+    static colorConfidence := 0.05 
     static noisestrength := 8
     static autoskip := true
     static goallist := ["Triumph","Lose"]
@@ -29,10 +29,11 @@ class TDSmacro {
     static playtext := "|<>*166$55.07szzky7w00wTzsTXy00CDzs7ky8y77zw3wS4TVXzy8y76DklzyATV77sMzz67s3XsQTz7Xw3k0CDzXkz1s0D7zU0TVw0TXzk0DsyDzlzk03wT7zs08zlyDXzw04TsT7lzy00TyDXw"
     static corneredAtext := "|<>*127$14.3w7ztzyTDjnzsTyrz0xriTzbzsDkU"
     static closemark := "|<>*175$24.xzzjszz7kTy3UDw107s0U3k1k1U3s007w00Dy00Tz00zzU1zzU1zz00zy00Tw00Ds007k1U3U3k107s0UDw1kTy3szz7xzzjU"
-    static giveuptolarance := 2
+    static giveUpTolerance := 2
     static loses := 0
     static rejoining := false
     static UseOCR := true
+    static loginRewardsImg := "|<>*110$37.0000C000CDjk0yTzzw0zzzTC0RyD73UQT71MkCDFgiS73gq7D3VqP03lks000ts0000Ds00007s00003w00001i00000r00000P00000BU00007k00023s00070w03s7UT03y7kC"
     static inventoryimg := "|<>*137$22.0sQ07zs0TzU1zy0Dnw0jDE6wxUPzq1Dz84QsUE02300AQ00tk03b00CSQtttzbjbyTyQtxxnjXzzw7zzW" ;to check if player is on the uhh vote for a map type shi
     static solotext := "|<>*142$66.zzzzzzw3zzzy0Dzzzw3zzzs03zzzw3zzzU03zzzw3zzzU03zzzw3zzz003zzzw3zzz0zbz0Dw3y0T0zzw03w7s070Tzs01w7k0303zk00w7U01U0DU60w70A1k03UT0Q70y0s01UTUQ70z0z01UTUQ70z0zw1UTUQ70z0zy0UTUQ70z0bz1UT0Q70y0Uy1k60w7UA1001k00w7U01003s01w7k03007w03w7s07k0Tz0Dw7y0TU"
     static disconnectedtext := "|<>*147$115.zzbzzzzzzzzzzzzzzzy0TXzzzzzzzzzzzzbzzz03tzzzzzzzzzzzznzzzVkzzzzzzzzzzzzztzzzkyDzzzzzzzzzzzzwzzzsT6D3wDVsVsVy3w83Uy4DX60s30Q0Q0S0s01UC07tX6sP766C6CCMPbXa63wlXwTXn7b7bDYTnnt7VwMsSTnsXnXnU2Tts0XkyAS3DtwFtltk1Dww0FsTCDtXwSMwswtzXySTswC76QkyCASQSQSkz77gQ07X0Q1UCDCDD0Q1Uk700DlkT1sD7b7bsT1sS7kY"
@@ -61,24 +62,21 @@ class TDSmacro {
     static debug := false
     static patience := 180 ;if a loop is more than that long it will try to rejoin
     static gamesorigin := [500,550]
-    static lasttowercord := [100,100]
+    static lastTowerCord := [100,100]
     static gamemodes := ["Hardcore", "PVP", "Survival", "Special Modes", "Sandbox"]
     static gamemode := "Survival"
-    static survivalmodes := ["Easy", "Casual", "Intermediate", "Fallen", "Frost"]
+    static survivalmodes := ["Easy", "Casual", "Intermediate", "Molten", "Fallen", "Frost"]
     static map := "U-Turn"
-    static IterativeReads := 5
-    static modifiersarrayinput := []
+    static iterativeReads := 5
+    static modifiersInput := []
     static survivalmode := "Frost"
     static starttime := A_TickCount
-    ;static hardcoremodes := ["Hardcore", "Voidcore"]
-    ;static hardcoremode := "Hardcore"
     static webhookUrl := ""
     static UseTimescale := false
-    static gdiToken := 0
-    static TimescaleUntil:=1
+    static timescaleUntil:= 1
     static lastupgardecost := 0
-    static selectingtower := false
-    static UseRapidOCR := true
+    static selectingTower := false
+    static useRapidOCR := true
     static hModule := 0
     static whr := ComObject("WinHttp.WinHttpRequest.5.1")
     static __New() {
@@ -98,22 +96,22 @@ class TDSmacro {
         debugVal := IniRead(iniPath, "Settings", "Debug", "false")
         this.debug := (debugVal = "true" || debugVal = "1")
 
-        UseOCRVal := IniRead(iniPath, "Settings", "UseOCRVal", "true")
+        UseOCRVal := IniRead(iniPath, "Settings", "UseOCR", "true")
         this.UseOCR := (UseOCRVal = "true" || UseOCRVal = "1")
 
         UseTimescale := IniRead(iniPath, "Settings", "UseTimescale", "false")
         this.UseTimescale := (UseTimescale = "true" || UseTimescale = "1")
 
-        UseRapidOCR := IniRead(iniPath, "Settings", "UseRapidOCR", "true")
-        this.UseRapidOCR := (UseRapidOCR = "true" || UseRapidOCR = "1")
+        useRapidOCR := IniRead(iniPath, "Settings", "UseRapidOCR", "true")
+        this.useRapidOCR := (useRapidOCR = "true" || useRapidOCR = "1")
 
-        if (this.UseRapidOCR) {
+        if (this.useRapidOCR==true) {
             DllCall("SetDllDirectory", "Str", moduleDir "\bin")
             this.hModule := DllCall("LoadLibrary", "Str", moduleDir "\bin\libRapidOCR_v6.dll", "Ptr")
             if (!this.hModule) {
-                this.UseRapidOCR := false
+                this.useRapidOCR := false
                 if (this.debug) {
-                    this.logTodc("Failed to load libRapidOCR_v6.dll during initialization. Falling back to standard OCR. Error: " A_LastError)
+                    Webhook.Send("Failed to load libRapidOCR_v6.dll during initialization. Falling back to standard OCR. Error: " A_LastError)
                 }
             }
         }
@@ -125,29 +123,29 @@ class TDSmacro {
             this.patience := 150
         }
         try {
-            this.giveuptolarance := Max(1,Integer(IniRead(iniPath, "Settings", "Giveuptolarance", "2")))
+            this.giveUpTolerance := Max(1,Integer(IniRead(iniPath, "Settings", "giveUpTolerance", "2")))
         } catch {
-            this.giveuptolarance := 2
+            this.giveUpTolerance := 2
         }
         try {
-            this.IterativeReads := Max(1,Integer(IniRead(iniPath, "Settings", "IterativeReads", "5")))
+            this.iterativeReads := Max(1,Integer(IniRead(iniPath, "Settings", "iterativeReads", "5")))
         } catch {
-            this.IterativeReads := 5
+            this.iterativeReads := 5
         }
         try {
-            this.TimescaleUntil := Max(1,Integer(IniRead(iniPath, "Settings", "TimescaleUntil", "1")))
+            this.timescaleUntil := Max(1,Integer(IniRead(iniPath, "Settings", "timescaleUntil", "1")))
         } catch {
-            this.TimescaleUntil := 1
+            this.timescaleUntil := 1
         }
         try {
-            this.pixelconfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "PixelConfidence", "0.05")),0,1)
+            this.pixelConfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "pixelConfidence", "0.05")),0,1)
         } catch {
-            this.pixelconfidence := 0.05
+            this.pixelConfidence := 0.05
         }
         try {
-            this.colorconfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "ColorConfidence", "0.05")),0,1)
+            this.colorConfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "colorConfidence", "0.05")),0,1)
         } catch {
-            this.colorconfidence := 0.05
+            this.colorConfidence := 0.05
         }
 
         try {
@@ -156,180 +154,33 @@ class TDSmacro {
                 NumPut("UInt", APPBARDATA.Size, APPBARDATA, 0)
                 state := DllCall("Shell32\SHAppBarMessage", "UInt", 4, "Ptr", APPBARDATA, "UInt")
                 if (state & 1) {
-                    this.logTodc("TDSmacro v1.2 Snapshot Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.2 Snapshot Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
-                    this.logTodc("TDSmacro v1.2 Snapshot Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.2 Snapshot Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 }
             }
         }
-        
-        ; Initialize GDI+ once for the lifetime of the macro
-        si := Buffer(A_PtrSize = 8 ? 24 : 16, 0)
-        NumPut("UInt", 1, si)
-        DllCall("gdiplus\GdiplusStartup", "Ptr*", &token := 0, "Ptr", si, "Ptr", 0)
-        this.gdiToken := token
     }
     static modifierorigin := [790,380]
     static Clamp(Value, MinVal, MaxVal) {
         return Min(Max(Value, MinVal), MaxVal)
     }
-    static logTodc(msg) {
-        if (this.webhookUrl == "") {
-            return false
-        }
-        try {
-            payload := '{"content": "' msg '"}'
-        
-            this.whr.Open("POST", this.webhookUrl, true)
-            this.whr.SetRequestHeader("Content-Type", "application/json")
-            this.whr.Send(payload)
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    
-    static logScreenshot(msg := "") {
-    if (this.webhookUrl == "")
-            return false
-
-        if (this.debug)
-            this.logTodc("Capturing screenshot...")
-
-        try {
-            pngBuffer := this.CaptureScreenToRAM()
-            if (!pngBuffer || pngBuffer.Size == 0) {
-                this.logTodc(msg . " (Failed to capture screenshot - buffer empty)")
-                return false
-            }
-
-            if (this.debug)
-                this.logTodc("Screenshot captured, size: " pngBuffer.Size " bytes. Preparing to send...")
-
-            boundary := "----AHKWebhookBoundary" . A_TickCount
-            
-            ; Build HTTP multipart frames
-            header := ""
-            if (msg != "") {
-                header .= "--" boundary "`r`n"
-                header .= 'Content-Disposition: form-data; name="content"' "`r`n`r`n"
-                header .= msg "`r`n"
-            }
-            header .= "--" boundary "`r`n"
-            header .= 'Content-Disposition: form-data; name="file"; filename="screenshot.png"' "`r`n"
-            header .= "Content-Type: image/png`r`n`r`n"
-            
-            footer := "`r`n--" boundary "--`r`n"
-            
-            bufHeader := this.StrToBuf(header, "UTF-8")
-            bufFooter := this.StrToBuf(footer, "UTF-8")
-            
-            ; Combine header + PNG RAM buffer + footer into a single SafeArray
-            totalSize := bufHeader.Size + pngBuffer.Size + bufFooter.Size
-            SafeArr := ComObjArray(0x11, totalSize) ; 0x11 = Byte array
-            
-            pvData := 0
-            if DllCall("oleaut32\SafeArrayAccessData", "Ptr", ComObjValue(SafeArr), "Ptr*", &pvData) == 0 {
-                DllCall("RtlMoveMemory", "Ptr", pvData, "Ptr", bufHeader.Ptr, "Ptr", bufHeader.Size)
-                DllCall("RtlMoveMemory", "Ptr", pvData + bufHeader.Size, "Ptr", pngBuffer.Ptr, "Ptr", pngBuffer.Size)
-                DllCall("RtlMoveMemory", "Ptr", pvData + bufHeader.Size + pngBuffer.Size, "Ptr", bufFooter.Ptr, "Ptr", bufFooter.Size)
-                DllCall("oleaut32\SafeArrayUnaccessData", "Ptr", ComObjValue(SafeArr))
-            } else {
-                throw Error("SafeArrayAccessData failed")
-            }
-            
-            whr := ComObject("WinHttp.WinHttpRequest.5.1")
-            whr.Open("POST", this.webhookUrl, false)
-            whr.SetTimeouts(0, 30000, 30000, 60000)
-            whr.SetRequestHeader("Content-Type", "multipart/form-data; boundary=" boundary)
-            
-            if (this.debug)
-                this.logTodc("Sending screenshot to Discord...")
-
-            whr.Send(SafeArr)
-            
-            if (this.debug)
-                this.logTodc("Screenshot sent. Status: " this.whr.Status)
-
-            return (whr.Status == 200 || whr.Status == 204)
-        } catch Error as err {
-            this.logTodc(msg . " (Screenshot error: " . err.Message . " at line " . err.Line . ")")
-            return false
-        }
-    }
-
-
-    static CaptureScreenToRAM() {
-        ; Capture Device Context to GDI Bitmap
-        w := A_ScreenWidth, h := A_ScreenHeight
-        hdcScreen := DllCall("GetDC", "Ptr", 0, "Ptr")
-        hdcMem := DllCall("CreateCompatibleDC", "Ptr", hdcScreen, "Ptr")
-        hbm := DllCall("CreateCompatibleBitmap", "Ptr", hdcScreen, "Int", w, "Int", h, "Ptr")
-        obm := DllCall("SelectObject", "Ptr", hdcMem, "Ptr", hbm, "Ptr")
-        DllCall("BitBlt", "Ptr", hdcMem, "Int", 0, "Int", 0, "Int", w, "Int", h, "Ptr", hdcScreen, "Int", 0, "Int", 0, "UInt", 0x00CC0020)
-        
-        ; Convert to GDI+ Bitmap
-        pBitmap := 0
-        DllCall("gdiplus\GdipCreateBitmapFromHBITMAP", "Ptr", hbm, "Ptr", 0, "Ptr*", &pBitmap)
-        
-        pngBuffer := ""
-        if (pBitmap) {
-            ; Setup PNG Encoder CLSID
-            pClsid := Buffer(16)
-            DllCall("ole32\CLSIDFromString", "Str", "{557CF406-1A04-11D3-9A73-0000F81EF32E}", "Ptr", pClsid)
-            
-            ; Create a Windows global memory stream (IStream) instead of a file
-            pStream := 0
-            DllCall("ole32\CreateStreamOnHGlobal", "Ptr", 0, "Int", true, "Ptr*", &pStream)
-            
-            if (pStream) {
-                ; Save the image data directly into the RAM stream
-                status := DllCall("gdiplus\GdipSaveImageToStream", "Ptr", pBitmap, "Ptr", pStream, "Ptr", pClsid, "Ptr", 0)
-                
-                if (status == 0) {
-                    ; Get pointer to the memory handle allocated by the stream
-                    hGlobal := 0
-                    DllCall("ole32\GetHGlobalFromStream", "Ptr", pStream, "Ptr*", &hGlobal)
-                    pData := DllCall("GlobalLock", "Ptr", hGlobal, "Ptr")
-                    dataSize := DllCall("GlobalSize", "Ptr", hGlobal, "UPtr")
-                    
-                    ; Copy data into a native AHK Buffer object
-                    pngBuffer := Buffer(dataSize)
-                    DllCall("RtlMoveMemory", "Ptr", pngBuffer.Ptr, "Ptr", pData, "Ptr", dataSize)
-                    
-                    DllCall("GlobalUnlock", "Ptr", hGlobal)
-                }
-                ObjRelease(pStream)
-            }
-            DllCall("gdiplus\GdipDisposeImage", "Ptr", pBitmap)
-        }
-        
-        ; Release all handles
-        DllCall("SelectObject", "Ptr", hdcMem, "Ptr", obm)
-        DllCall("DeleteObject", "Ptr", hbm)
-        DllCall("DeleteDC", "Ptr", hdcMem)
-        DllCall("ReleaseDC", "Ptr", 0, "Ptr", hdcScreen)
-        
-        return pngBuffer
-    }
-
-    static StrToBuf(str, encoding) {
-        cb := StrPut(str, encoding)
-        buf := Buffer(cb)
-        StrPut(str, buf, encoding)
-        buf.Size := (encoding = "UTF-16" || encoding = "cp1200" ? cb - 2 : cb - 1)
-        return buf
-    }
-    ; Clean internal helper method to find images safely
-    static Find(img, err1_mod:=0, err2_mod:=0, fromx:=0, fromy:= 0, tox:= A_ScreenWidth, toy:= A_ScreenHeight) {
+;=================================================================
+;Find Static image using strings
+;img is for the image variable or if you're a psychopath, copy the string
+;err1_mod is pixelConfidence
+;err2_mod is colorConfidence
+;fromX and fromY is the first location
+;toX and toY is the second location
+;Its for determining the width and height of the search field
+    static Find(img, err1_mod:=0, err2_mod:=0, fromX:=0, fromY:= 0, toX:= A_ScreenWidth, toY:= A_ScreenHeight) {
         ; FindText V2 returns an array of objects if found, or false if not
         if (this.debug == true) {
             try {
-                w := Abs(tox - fromx)
-                h := Abs(toy - fromy)
-                startX := Min(tox, fromx)
-                startY := Min(toy, fromy)
+                w := Abs(toX - fromX)
+                h := Abs(toY - fromY)
+                startX := Min(toX, fromX)
+                startY := Min(toY, fromY)
                 DebugGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
                 DebugGui.BackColor := "0000FF"
                 WinSetTransColor("EEAA99", DebugGui) 
@@ -340,13 +191,20 @@ class TDSmacro {
                 SetTimer(() => DebugGui.Destroy(), -1000)
             }
         }
-        if (ok := FindText(&locX, &locY, fromx, fromy, tox, toy, this.pixelconfidence + err1_mod, this.colorconfidence + err2_mod, img)) {
+        if (ok := FindText(&locX, &locY, fromX, fromY, toX, toY, this.pixelConfidence + err1_mod, this.colorConfidence + err2_mod, img)) {
             return {x: locX, y: locY}
         }
         return false
     }
-
-    static ocrwindowread(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=1,gray:=0,process:=unset) {
+;=================================================================
+;Find dynamic image using your screen
+;x1 and y1 is the first location
+;x2 and y2 is the second location
+;Its for determining the width and height of the search field
+;gray is for turning the search field color into gray
+;Scale is for scaling the search field
+;process is to change the OCR process
+    static OcrWindowRead(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=1,gray:=0,process:=unset) {
         ; 1. Pre-calculate structural dimensions
         w := Abs(x2 - x1)
         h := Abs(y2 - y1)
@@ -387,7 +245,7 @@ class TDSmacro {
         }
 
         ; 4. Route to the chosen OCR Method
-        if (this.UseRapidOCR == false) {
+        if (this.useRapidOCR == false) {
             gray := gray ? 1 : 0
             if (IsSet(process) == 0) {
                 try {
@@ -441,29 +299,27 @@ class TDSmacro {
             }
         }
     }
-
-    static OCRawaitmoney(n := 0) {
-        if (this.checklost() == true) {
+    ;OCRawaitmoney 
+    static AwaitMoney(n := 0) {
+        if (this.CheckLost() == true) {
             return
         }
         if (Type(n) != "Integer") {
             n := 0
         }
-        if (this.debug == true) {
-            this.logTodc("Awaiting for money to be $" n)
-        }
+        Webhook.SendDebugLog("Awaiting for money to be $" n)
         if (n == 0) {
             return
         }
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
-            if (this.checklost() == true) {
+            if (this.CheckLost() == true) {
                 break
             }
-            this.insanitycheck(loopstartedat)
-            this.skipable()
+            this.LoopTimeout(loopStartedAt)
+            this.CheckSkip()
             Sleep(50)
-            findresult := this.ocrwindowread(1210,930,1330,960,3)
+            findresult := this.OcrWindowRead(1210,930,1330,960,3)
             try {
                 currentmoney := Integer(RegExReplace(findresult.Text, "[^\d]"))
                 if (this.debug == true) {
@@ -475,9 +331,9 @@ class TDSmacro {
             }
         }
     }
-
-    static OCRgetupgradeprice() {
-        result := this.ocrwindowread(1030,630,1180,845,1)
+    ;OCRgetupgradeprice
+    static GetUpgradePrice() {
+        result := this.OcrWindowRead(1030,630,1180,845,1)
         tablefromresult := StrSplit(RegExReplace(result.Text, "[^\w!@#$%^&*()$+= \-}{\]\[|\\:;.\x22'?><,/]"), " ")
     
         if (!result || !result.Text)
@@ -503,35 +359,31 @@ class TDSmacro {
     
         if (price != 0) { 
             this.lastupgardecost := price 
-            if (this.debug == true) { 
-                this.logTodc("Upgrade Price found at $" price) 
-            } 
+            Webhook.SendDebugLog("Upgrade Price found at $" price) 
         }
         return price 
     }
 
     static Timescale() {
-        if (this.checklost() == true) {
+        if (this.CheckLost() == true) {
             return
         }
-        if (this.debug == True) {
-            this.logTodc("Attempting to use timescale ticket")
-        }
+        Webhook.SendDebugLog("Attempting to use timescale ticket")
         xconstant := 660
         if (this.gamemode == this.gamemodes[1]) { ; cuz hardcore cant use consumeable so we have to shift it by a bit
             xconstant := 730
         }
         Click(xconstant,1000)
-        Sleep(200)
+        Sleep(50)
         ticketsleft := 0
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
-            this.insanitycheck(loopstartedat)
-            if (this.checklost() == true) {
+            this.LoopTimeout(loopStartedAt)
+            if (this.CheckLost() == true) {
                 break
             }
-            Sleep(300)
-            result := this.ocrwindowread(820,410,1110,700)
+            Sleep(50)
+            result := this.OcrWindowRead(820,410,1110,700)
             pos := InStr(result.Text, "You have ")
             if (pos != 0) {
                 try {
@@ -539,7 +391,7 @@ class TDSmacro {
                     ticketsleft := (RegExReplace(cache, "[^\d]")="") ? -1 : Number(RegExReplace(cache, "[^\d]"))
                 }
             }
-            if (ticketsleft > this.TimescaleUntil) {
+            if (ticketsleft > this.timescaleUntil) {
                 Click(970,630)
                 Sleep(500)
                 Click(xconstant,1000)
@@ -547,9 +399,9 @@ class TDSmacro {
                 Click(xconstant,1000)
                 break
             } else {
-                if (ticketsleft <= this.TimescaleUntil && ticketsleft != 0) {
+                if (ticketsleft <= this.timescaleUntil && ticketsleft != 0) {
                     this.UseTimescale := false
-                    this.logScreenshot("Saving timescale tickets, disabling timescale and runs macro as usual")
+                    Webhook.SendScreenshot("Saving timescale tickets, disabling timescale and runs macro as usual")
                     Sleep(2000)
                     Click(970,700)
                     break
@@ -561,19 +413,20 @@ class TDSmacro {
     static PositiveSquash(n) {
         return (2 / (1 + 2 ** (-n / 2)) - 1)
     }
-    static insanitycheck(t) {
+    ;insanitycheck
+    static LoopTimeout(t) {
         if ((A_TickCount - t)/1000 > this.patience) {
             this.lost := true
             this.loses := 0
-            this.logScreenshot("A loop has gone " this.patience "s we will try to rejoin")
-            this.rejoin()
+            Webhook.SendScreenshot("A loop has gone " this.patience "s we will try to rejoin")
+            this.Rejoin()
             t := A_TickCount
             return true
         }
         return false
     }
 
-    static checklost() {
+    static CheckLost() {
         if (this.lost == true) {
             return true
         }
@@ -581,30 +434,30 @@ class TDSmacro {
             this.lost := true
             this.loses+=1
             elapsedtime := A_TickCount - this.starttime
-            this.logScreenshot("Lost, already lost " this.loses "x, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
+            Webhook.SendScreenshot("Lost, already lost " this.loses "x, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
         }
         if (this.Find(this.triumphtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
             this.loses := 0
             elapsedtime := A_TickCount - this.starttime
-            this.logScreenshot("Triumph, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
+            Webhook.SendScreenshot("Triumph, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
         }
-        if (this.loses >= this.giveuptolarance AND this.goal == this.goallist[1]) {
+        if (this.loses >= this.giveUpTolerance AND this.goal == this.goallist[1]) {
             this.lost := true
             this.loses := 0
-            this.logTodc("bro loses hope maybe i hallucinate map, imma rejoin rq")
-            this.rejoin()
+            Webhook.Send("bro loses hope maybe i hallucinate map, imma rejoin rq")
+            this.Rejoin()
         }
         if (this.Find(this.disconnectedtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
             this.loses := 0
-            this.logScreenshot("bro got disconnected get a better wifi")
-            this.rejoin()
+            Webhook.SendScreenshot("bro got disconnected get a better wifi")
+            this.Rejoin()
         }
         return this.lost
     }
-
-    static skipable(ontower := false) {
+    ;skipable
+    static CheckSkip(ontower := false) {
         if (this.autoskip == false) {
             return
         }
@@ -615,10 +468,10 @@ class TDSmacro {
             ;FindText().Click(pos.x, pos.y, "L")
             Click(1023,217)
             Sleep(50)
-            MouseMove(savedX, savedY, 0)
+            MouseMove(savedX, savedY)
             try {
-                if (ontower == true && InStr(this.ocrwindowread(665,780,755,800,1).Text,"Level:") == 0) {
-                    this.selecttower(this.lasttowercord[1],this.lasttowercord[2])
+                if (ontower == true && InStr(this.OcrWindowRead(665,780,755,800,1).Text,"Level:") == 0) {
+                    this.SelectTower(this.lastTowerCord[1],this.lastTowerCord[2])
                 }
             }
         }
@@ -641,43 +494,38 @@ class TDSmacro {
     return -1
     }
 
-    static upgradeuntil(lvl) {
-        if (this.checklost() == true) {
+    static UpgradeUntilLevel(Level) {
+        if (this.CheckLost() == true) {
             return
         }
-        if (this.debug == True) {
-            this.logTodc("Attempting to upgrade until lvl " lvl)
-        }
+        Webhook.SendDebugLog("Attempting to upgrade until lvl " Level)
         MouseMove(100, 100, 0)
         if (this.UseOCR == true) {
             res := -1
-            loop this.IterativeReads {
+            loop this.iterativeReads {
                 if (res==-1) {
-                    result := this.ocrwindowread(665,780,755,800,1)
+                    result := this.OcrWindowRead(665,780,755,800,1)
                     res := this.ParseLevel(result.Text)
                     Sleep(50)
                 }
             }
 
             if (res!=-1) {
-                if (this.debug == true) {
-                    ToolTip("This tower is level: " res)
-                    this.logTodc("This tower is level: " res)
-                }
+                Webhook.SendDebugLog("This tower is level: " res)
             }
 
-            if (res != -1 && res >= lvl) {
+            if (res != -1 && res >= Level) {
                 return
             }
 
-            if (res != -1 && lvl-res > 1) {
-                loop (lvl-res) {
-                    this.upgradeuntil(res+A_Index)
-                    if (this.checklost() == false) {
+            if (res != -1 && Level-res > 1) {
+                loop (Level-res) {
+                    this.UpgradeUntilLevel(res+A_Index)
+                    if (this.CheckLost() == false) {
                         ucache := this.lastupgardecost
-                        loop this.IterativeReads {
+                        loop this.iterativeReads {
                             Sleep(100)
-                            seconducache := this.OCRgetupgradeprice()
+                            seconducache := this.GetUpgradePrice()
                             if (seconducache!=ucache && seconducache!=0) {
                                 break
                             }
@@ -687,8 +535,8 @@ class TDSmacro {
                 return
             }
             upgradeprice := 0
-            loop this.IterativeReads {
-                cache := this.OCRgetupgradeprice()
+            loop this.iterativeReads {
+                cache := this.GetUpgradePrice()
                 if (cache != 0) {
                     upgradeprice := cache
                     break
@@ -696,22 +544,22 @@ class TDSmacro {
                 Sleep(50)
             }
             if (upgradeprice != 0) {
-                this.OCRawaitmoney(upgradeprice)
+                this.AwaitMoney(upgradeprice)
             }
         }
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
             found := false
-            loop this.IterativeReads {
+            loop this.iterativeReads {
                 if (found == false) {
                     if (this.UseOCR == true) {
-                        result := this.ocrwindowread(665,780,755,800,1)
-                        level := this.ParseLevel(result.Text)
-                        if (level >= lvl) {
+                        result := this.OcrWindowRead(665,780,755,800,1)
+                        reslevel := this.ParseLevel(result.Text)
+                        if (reslevel >= Level) {
                             found := true
                         }
                     } else {
-                        if (this.Find(this.levels[lvl],0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
+                        if (this.Find(this.levels[Level],0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
                             found := true
                         }
                     }
@@ -722,81 +570,80 @@ class TDSmacro {
             }
             Sleep(50)
             Send("e")
-            this.skipable(true)
-            this.insanitycheck(loopstartedat)
-            if (this.checklost() == true) {
+            this.CheckSkip(true)
+            this.LoopTimeout(loopStartedAt)
+            if (this.CheckLost() == true) {
                 break
             }
         }
     }
-
-    static canplace(a, b, c, d := 0) {
-        if (this.checklost() == true) {
+;=================================================================
+;Place your tower at desired location
+;locationX and locationY is the location
+;Keybind is your keybind
+;Price is the price of the tower. The default is zero and is optional if you want to fill it or no
+    static PlaceTower(locationX, locationY, Keybind, Price := 0) {
+        if (this.CheckLost() == true) {
             return
         }
-        if (this.debug == True) {
-            this.logTodc("Attempting to place key " c " tower at X=" a " Y=" b)
-        }
-        this.selectingtower := false
+        Webhook.SendDebugLog("Attempting to place key " Keybind " tower at X=" locationX " Y=" locationY)
+        this.selectingTower := false
         it := 0
-        if (this.UseOCR == true && d!=0) {
-            if (this.debug == True) {
-                this.logTodc("Awaiting for money by the assumed placement cost: " d)
-            }
-            this.OCRawaitmoney(d)
+        if (this.UseOCR == true && Price!=0) {
+            Webhook.SendDebugLog("Awaiting for money by the assumed placement cost: " Price)
+            this.AwaitMoney(Price)
         }
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
-            Send(c)
+            Send(Keybind)
             offsetX := Random(-(this.noisestrength / 2), (this.noisestrength / 2))
             offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2))
         
-            targetX := this.Clamp(a + offsetX*this.PositiveSquash(it), 8, 1927)
-            targetY := this.Clamp(b + offsetY*this.PositiveSquash(it), 32, 1032)
+            targetX := this.Clamp(locationX + offsetX*this.PositiveSquash(it), 8, 1927)
+            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it), 32, 1032)
         
             Click(targetX, targetY)
-            Sleep(200)
             OCRplaced := false
             if (this.UseOCR == true) {
-                loop this.IterativeReads + 5 {
+                loop this.iterativeReads + 5 {
                     MouseGetPos(&mx,&my)
-                    rescr := this.ocrwindowread(mx+5,my-85,mx+245,my-60)
+                    rescr := this.OcrWindowRead(mx+5,my-85,mx+245,my-60)
                     if (InStr(rescr.Text,"Tower")) {
                         Send("q")
-                        this.selecttower(a,b)
+                        this.SelectTower(locationX,locationY)
                         Sleep(100)
                         return
                     }
                     if (OCRplaced == false) {
-                        res := this.ocrwindowread(mx+10,my+25,mx+100,my+55,3,true)
-                        if (InStr(res.Text,"Rotate")==0) {
+                        res := this.OcrWindowRead(mx+10,my+25,mx+100,my+55,3,true)
+                        if (InStr(res.Text,"Rotate")!=0) {
                             OCRplaced := true
                             break
                         }
-                        result := this.ocrwindowread(665,780,755,800,1)
+                        result := this.OcrWindowRead(665,780,755,800,1)
                         pos:=InStr(result.Text, "Level:")
                         if (pos != 0) {
                             OCRplaced := true
                             break
                         }
-                        Sleep(100)
+                        Sleep(50)
                     }
                 }
             } else {
-                Sleep(50*this.IterativeReads)
+                Sleep(50*this.iterativeReads)
             }
             ;Click(targetX,targetY)
             mult := 3
             if (OCRplaced == false) {
-                Sleep(1300 - 50*this.IterativeReads)
+                Sleep(1300 - 50*this.iterativeReads)
                 mult := 1
             }
 
             found := false
-            loop this.IterativeReads*mult {
+            loop this.iterativeReads*mult {
                 if (found == false) {
                     if (this.UseOCR == true) {
-                        result := this.ocrwindowread(665,780,755,800,1)
+                        result := this.OcrWindowRead(665,780,755,800,1)
                         level := -1
                         pos:=InStr(result.Text, "Level:")
                         if (pos != 0) {
@@ -814,31 +661,30 @@ class TDSmacro {
                 break
             }
 
-            this.skipable()
-            this.insanitycheck(loopstartedat)
-            if (this.checklost() == true) {
+            this.CheckSkip()
+            this.LoopTimeout(loopStartedAt)
+            if (this.CheckLost() == true) {
                 break
             }
             it:=it+1
         }
-        this.lasttowercord := [a,b]
-        this.selectingtower := true
+        this.lastTowerCord := [locationX,locationY]
+        this.selectingTower := true
     }
-
-    static clickready() {
+    static StartMatch() {
         this.lost := false
         this.lastupgardecost := 0
-        this.selectingtower := false
-        this.lasttowercord := [100, 100]
+        this.selectingTower := false
+        this.lastTowerCord := [100, 100]
         if (this.UseTimescale == true) {
             this.Timescale()
         }
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
             Sleep(20)
-            if (this.insanitycheck(loopstartedat) == true) {
+            if (this.LoopTimeout(loopStartedAt) == true) {
                 this.lost := false
-                loopstartedat := A_TickCount
+                loopStartedAt := A_TickCount
             }
             if (pos := this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
                 MouseMove(pos.x, pos.y)
@@ -849,99 +695,90 @@ class TDSmacro {
             }
         }
         this.starttime := A_TickCount
-        if (this.debug == True) {
-            this.logTodc("Ready Found, Assigning starttime as " this.starttime)
-        }
+        Webhook.SendDebugLog("Ready Found, Assigning starttime as " this.starttime)
     }
 
-    static restartonlost() {
-        if (this.debug == True) {
-            this.logTodc("Awaiting for end/" this.goal)
+    static RestartMatch() {
+        Webhook.SendDebugLog("Awaiting for end/" this.goal)
+        if (this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
+            return
         }
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
             Sleep(20)
-            this.skipable()
-            this.insanitycheck(loopstartedat)
-            if (this.checklost() == true) {
-                MouseMove(830, 800, 10)
-                Sleep(50)
-                Click(830, 800)
-                Sleep(50)
+            this.CheckSkip()
+            this.LoopTimeout(loopStartedAt)
+            if (this.CheckLost() == true) {
                 this.lost := false
                 break
             }
         }
-        if (this.debug == True) {
-            this.logTodc("Done awaiting button restart match/play again is clicked")
-        }
+        Webhook.SendDebugLog("Done awaiting button restart match/play again is clicked")
     
         Sleep(300)
 
         cache:=this.ArrayAutoCorrectSearch(this.goal,this.goallist)
         if (cache[2] = True AND this.rejoining == false) {
             if (cache[1] == this.goallist[1] AND this.map != "" AND this.loses == 0) { ; bassically if it wins
-                this.newgamesetup()
+                this.NewGameSetUp(true)
             }
         }
         this.rejoining := false
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
             MouseMove(100, 100, 0)
             Sleep(80)
-            if (this.insanitycheck(loopstartedat) == true) {
-                loopstartedat := A_TickCount
+            if (this.LoopTimeout(loopStartedAt) == true) {
+                loopStartedAt := A_TickCount
             }
             if (this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
                 break
             } else if (cache[1] == this.goallist[2] ) {
-                MouseMove(830, 800, 10)
-                Sleep(50)
                 Click(830, 800)
                 Sleep(50)
+                Click(830, 880)
             }
         }
     }
-
-    static selecttower(a,b) {
-        if (this.checklost() == true) {
+;Its for selectiong your tower at designated location.
+;Do i have to explain more?
+    static TowerSelect(locationX,locationY) {
+        if (this.CheckLost() == true) {
             return
         }
-        if (this.debug == True) {
-            this.logTodc("Attempt to select a towe at X=" a " Y=" b)
-        }
-        Click(100,100)
-        this.selectingtower := false
+        Webhook.SendDebugLog("Attempt to select a tower at X=" locationX " Y=" locationY)
+        MouseMove(100,100,0)
+        this.selectingTower := false
         it:=0
         Sleep(50)
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
-            offsetX := Random(-(this.noisestrength / 2), (this.noisestrength / 2)) + Ceil((a/(A_ScreenWidth/2)-1)*15)
-            offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2)) + Ceil((b/(A_ScreenHeight/2)-1)*15)
+            offsetX := Random(-(this.noisestrength / 2), (this.noisestrength / 2)) + Ceil((locationX/(A_ScreenWidth/2)-1)*15)
+            offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2)) + Ceil((locationY/(A_ScreenHeight/2)-1)*15)
         
-            targetX := this.Clamp(a + offsetX*this.PositiveSquash(it), 8, 1927)
-            targetY := this.Clamp(b + offsetY*this.PositiveSquash(it), 32, 1032)
-            this.skipable()
-            this.insanitycheck(loopstartedat)
-            if (this.checklost() == true) {
+            targetX := this.Clamp(locationX + offsetX*this.PositiveSquash(it), 8, 1927)
+            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it), 32, 1032)
+            this.CheckSkip()
+            this.LoopTimeout(loopStartedAt)
+            if (this.CheckLost() == true) {
                 break
             }
             Click(targetX, targetY)
             Sleep(300)
-            loop this.IterativeReads*4 {
+            loop this.iterativeReads*4 {
                 if (this.UseOCR == true) {
-                    result := this.ocrwindowread(665,720,755,850,1)
+                    result := this.OcrWindowRead(665,720,755,850,1)
                     level := -1
                     pos:=InStr(result.Text, "Level:")
                     if (pos != 0) {
-                        this.lasttowercord := [a,b]
-                        this.selectingtower := true
+                        this.lastTowerCord := [locationX,locationY]
+                        this.selectingTower := true
                         return
                     }
                 } else {
                     if (this.Find(this.leveltext,0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
-                        this.lasttowercord := [a,b]
-                        this.selectingtower := true
+                        this.lastTowerCord := [locationX,locationY]
+                        this.selectingTower := true
                         return
                     }
                 }
@@ -950,35 +787,47 @@ class TDSmacro {
             Sleep(20)
         }
     }
-
-    static ChangeTrack(right:=1,abilities:=0,mercshift:=1) {
+;=================================================================
+;Change your tower passive
+;idk what's the name so lets call it passive
+;Passive is like DJ Tracks, Ace Pilot Flight Mode, Mercenary base queue unit
+;rows is for Passive box row e.g(Purple track is 1, Green track is 2, Red track is 3)
+;hasAbiltiy is when ur tower hasAbility 1 is true, 0 is false. Ability shifts your passive location down
+;column is for your Passive column e.g(Mercenary base queue 1 = column 1 etc)
+    static ChangePassive(rows:=1,hasAbility:=0,column:=1) {
         trackorigin := [1400, 640]
         Sleep(50)
-        Click(trackorigin[1]+(right-1)*65,trackorigin[2]+(mercshift-1)*85+abilities*105)
+        Click(trackorigin[1]+(rows-1)*65,trackorigin[2]+(column-1)*85+hasAbility*105)
     }
-
+;=================================================================
+;Use Your Tower Ability
+;key = your keybind
+;Btw the ones below is optional
+;place is for if you want to place something after pressing ability
+;place is used for tower such as Hacker and Brawler
+;x and y is the location for place (Reposition and  Cloning)
     static UseAbility(key,x:=unset,y:=unset,place:=false) {
         Sleep(50)
         Send("q")
         Sleep(50)
-        Click(100,100)
+        MouseMove(100,100,0)
         Sleep(50)
         Send(key)
         Sleep(50)
-        prevCord := this.lasttowercord
-        prevSelecting := this.selectingtower
+        prevCord := this.lastTowerCord
+        prevSelecting := this.selectingTower
         try {
             if (IsSet(x)==true && IsSet(y)==true) {
                 place := (place = true || place = false) ? place : false
                 if (place==true) {
-                    this.selecttower(x,y)
+                    this.SelectTower(x,y)
                 } else {
                     Click(x,y)
                 }
             }
         }
         if (prevSelecting==true) {
-            this.selecttower(prevCord[1],prevCord[2])
+            this.SelectTower(prevCord[1],prevCord[2])
         }
     }
 
@@ -991,32 +840,36 @@ class TDSmacro {
         return [query, False, 0]
     }
 
-    static CalibrateCam() {
-        if (this.debug == True) {
-            this.logTodc("Calibrating camera")
-        }
-        MouseMove(A_ScreenWidth // 2, 100, 0)
-        Sleep(200)
+    static CalibrateCamera(s:=0) {
+        Webhook.SendDebugLog("Calibrating camera")
+        MouseMove(A_ScreenWidth // 2, 100, s)
+        Sleep(300)
         Click("Right Down")
         MouseMove(A_ScreenWidth // 2, (A_ScreenHeight * 3) // 4)
-        Sleep(200)
+        Sleep(300)
         Click("Right Up")
         Sleep(50)
         Send("{WheelDown 50}")
     }
-    static newgamesetup() {
-        if (this.debug == True) {
-            this.logTodc("newgamesetup function is called")
-        }
+    
+    static NewGameSetUp(isTriumph:=false) {
+        Webhook.SendDebugLog("New game has started boi")
         MouseMove(100, 100, 0)
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
-            Sleep(80)
-            if (this.insanitycheck(loopstartedat) == true) {
+            Sleep(100)
+            if (this.LoopTimeout(loopStartedAt) == true) {
                 return
             }
             if (this.Find(this.inventoryimg, 0.15, 0.05, 700, 840, 740, 880)) {
                 break
+            }
+            if (isTriumph==true) {
+                if (this.Find(this.triumphtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
+                    Click(830, 800)
+                    Sleep(50)
+                    Click(830, 880)
+                }
             }
         }
         Sleep(300)
@@ -1027,11 +880,9 @@ class TDSmacro {
         Send("{Enter}")
         Sleep(6000)
 
-        this.votemodifiers()
+        this.VoteModifiers()
 
-        Sleep(150)
-
-        this.CalibrateCam()
+        this.CalibrateCamera(4)
         Sleep(200)
         Send("{s Down}")
         Sleep(4500)
@@ -1044,25 +895,25 @@ class TDSmacro {
         Sleep(200)
 
         Send("{a Down}")
-        Sleep(2700)
+        Sleep(2200)
         Send("{a Up}")
         Sleep(200)
 
         Send("{e Down}")
-        Sleep(150)
+        Sleep(300)
         Send("{e Up}")
         Sleep(1000)
         found := false
         Loop 20 {
             if (found = false) {
                 Sleep(50)
-                if (this.Find(this.corneredAtext, 0.05, 0.05,A_ScreenWidth/4,0,A_ScreenWidth/2,A_ScreenHeight/3)) {
+                if (this.Find(this.corneredAtext, 0.15, 0.05, 695, 230, 715, 250)) {
                     found := true
                 }   
             }
         }
         if (found = false) {
-            this.newgamesetup()
+            this.NewGameSetUp()
             return
         }
 
@@ -1071,6 +922,12 @@ class TDSmacro {
         SendText(this.ArrayAutoCorrectSearch(this.map,this.maps)[1])
         Sleep(200)
         Click(782, 339)
+        Sleep(300)
+
+        if (InStr(TDSmacro.OcrWindowRead(810,245,1110,265).Text, "Map is already")!=0) {
+            this.Rejoin()
+            return
+        }
 
         Send("{s Down}")
         Sleep(4000)
@@ -1086,9 +943,9 @@ class TDSmacro {
         Send("{e Up}")
         Sleep(200)
         Click(972,878)
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
-            if (this.insanitycheck(loopstartedat) == true) {
+            if (this.LoopTimeout(loopStartedAt) == true) {
                 return
             }
             if (pos := this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
@@ -1096,44 +953,42 @@ class TDSmacro {
             }
         }
         Sleep(150)
-        this.CalibrateCam()
+        this.CalibrateCamera()
     }
 
-    static votemodifiers() {
-        if !(Type(this.modifiersarrayinput) = "Array") {
+    static VoteModifiers() {
+        if !(Type(this.modifiersInput) = "Array") {
             return
         }
         cache := []
-        for i,v in this.modifiersarrayinput {
+        for i,v in this.modifiersInput {
             res := this.ArrayAutoCorrectSearch(v,this.modifiers)
             if (res[2] == True) {
                 cache.Push(res[3]-1)
             }
         }
-        if (this.debug == True) {
-            this.logTodc("Selecting Modifiers")
-        }
+        Webhook.SendDebugLog("Selecting Modifiers")
         Sleep(50)
         Click(73,976)
         Sleep(50)
         for v in cache {
             Click(this.modifierorigin[1]+Mod(v,4)*120,this.modifierorigin[2]+Floor(v/4)*110)
-            Sleep(50)
+            Sleep(10)
         }
         Click(1125,888)
     }
     
-    static rejoin() {
+    static Rejoin() {
         this.rejoining := true
         Run("roblox://placeId=3260590327")
         Sleep(10000)
-        loopstartedat := A_TickCount
+        loopStartedAt := A_TickCount
         while (true) {
             Sleep(100)
             try {
                 WinActivate("ahk_exe RobloxPlayerBeta.exe")
             }
-            if (this.insanitycheck(loopstartedat) == true) {
+            if (this.LoopTimeout(loopStartedAt) == true) {
                 return
             }
             if (pos := this.Find(this.playtext, 0.15, 0.05,A_ScreenWidth/3,A_ScreenHeight*3/4,A_ScreenWidth*2/3,A_ScreenHeight)) {
@@ -1145,16 +1000,17 @@ class TDSmacro {
                 MouseMove(savedX, savedY)
                 break
             }
+            if (pos := this.Find(this.loginRewardsImg, 0.05, 0.05, 640, 375, 700, 405)) {
+                Click(970,800)
+            }
         }
-        if (this.debug == True) {
-            this.logTodc("Play text found")
-        }
-        loopstartedat := A_TickCount
+        Webhook.SendDebugLog("Play text found")
+        loopStartedAt := A_TickCount
         while (true) {
-            if (this.insanitycheck(loopstartedat) == true) {
+            if (this.LoopTimeout(loopStartedAt) == true) {
                 return
             }
-            if (pos := this.Find(this.closemark, 0.05, 0.05,1160, 250, 1210, 300)) {
+            if (pos := this.Find(this.closemark, 0.05, 0.05, 1160, 250, 1210, 300)) {
                 Sleep(200)
                 break
             }
@@ -1166,9 +1022,10 @@ class TDSmacro {
         if (cache[1] = this.gamemodes[3]) {
             Click((this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]-1)*250-125+this.gamesorigin[1],this.gamesorigin[2])
         }
-        loopstartedat := A_TickCount
+        Webhook.SendDebugLog("Awaiting for solotext")
+        loopStartedAt := A_TickCount
         while (true) {
-            if (this.insanitycheck(loopstartedat) == true) {
+            if (this.LoopTimeout(loopStartedAt) == true) {
                 return
             }
             Sleep(80)
@@ -1177,12 +1034,36 @@ class TDSmacro {
                 break
             }
         }
-        if (this.debug == True) {
-            this.logTodc("Awaiting for solotext")
-        }
-        this.newgamesetup()
+        this.NewGameSetUp()
     }
-
+;==============================================================
+;LEGACY WRAPPER (So we dont have to edit every strat lol)
+;NEW USERS CAN USE THE NEW FUNCTIONS NAME BUT FOR THE LEGACY, IS THE LEGACY
+    static logTodc(msg) {
+        Webhook.Send(msg)
+    }
+    static canplace(locationX, locationY, Keybind, Price := 0) { ;this is a wrapper so legacy starts work i guess
+        this.PlaceTower(locationX, locationY, Keybind, Price)
+    }
+    
+    static selecttower(locationX, locationY) {
+        this.TowerSelect(locationX,locationY)
+    }
+    static upgradeuntil(Level) {
+        this.UpgradeUntilLevel(Level)
+    }
+    static restartonlost() {
+        this.RestartMatch()
+    }
+    static clickready() {
+        this.StartMatch()
+    }
+    static ChangeTrack(rows:=1,hasAbility:=0,column:=1) {
+        this.ChangePassive(rows, hasAbility, column)
+    }
+    static CalibrateCam() {
+        this.CalibrateCamera()
+    }
 }
 
 EscapePath(path) {
@@ -1192,3 +1073,4 @@ EscapePath(path) {
 #Include FindText.ahk
 #Include OCR.ahk
 #Include ImagePut.ahk
+#Include Webhook.ahk

@@ -59,20 +59,20 @@ ExitLabel(HotkeyName) {
 }
 
 CalibrateLabel(HotkeyName) {
-    TDSmacro.CalibrateCam()
+    TDSmacro.CalibrateCamera()
 }
 Select(x, y) {
-    TDSmacro.selecttower(x + 5,y - 8)
+    TDSmacro.TowerSelect(x + 5,y - 8)
 }
 StartLabel(HotkeyName) {
     while (true) {
         TDSmacro.lost := false
         TDSmacro.autoskip := true
-        TDSmacro.clickready()
+        TDSmacro.StartMatch()
         ;PLACE 3 BRAWLERS IN FRONT
         for i,v in FrontBrawlers {
             if (i <= 3) {
-            TDSmacro.canplace(v[1],v[2],"1",0)
+            TDSmacro.PlaceTower(v[1],v[2],"1",0)
             } else {
                 break
             }
@@ -81,73 +81,73 @@ StartLabel(HotkeyName) {
         for i,v in FrontBrawlers {
             if (i <= 3) {
             Select(v[1],v[2])
-            TDSmacro.upgradeuntil(1)
+            TDSmacro.UpgradeUntilLevel(1)
             } else {
                 break
             }
         }
         ;PLACE 3 BRAWLERS IN MID
         Loop 3 {
-            TDSmacro.canplace(MidBrawlers[A_Index][1],MidBrawlers[A_Index][2],"1",300)
+            TDSmacro.PlaceTower(MidBrawlers[A_Index][1],MidBrawlers[A_Index][2],"1",300)
         }
         ;UPGRADE 3 BRAWLERS IN MID TO LV 1
         Loop 3 {
             Select(MidBrawlers[A_Index][1],MidBrawlers[A_Index][2])
-            TDSmacro.upgradeuntil(1)
+            TDSmacro.UpgradeUntilLevel(1)
         }
         ;UPGRADE 2 BRAWLERS IN MID TO LV 2, PLACE DJ, AND UPGRADE THIRD BRAWLER TO LV 2
         Loop 3 {
             Select(MidBrawlers[A_Index][1],MidBrawlers[A_Index][2])
-            TDSmacro.upgradeuntil(2)
+            TDSmacro.UpgradeUntilLevel(2)
             if (A_Index == 2) {
-                TDSmacro.canplace(DjLoc[1],DjLoc[2],"2",850)
+                TDSmacro.PlaceTower(DjLoc[1],DjLoc[2],"2",850)
             }
         }
         ;UPGRADE 3 BRAWLERS IN FRONT TO LV 2
         Loop 3 {
             Select(FrontBrawlers[A_Index][1], FrontBrawlers[A_Index][2])
-            TDSmacro.upgradeuntil(2)
+            TDSmacro.UpgradeUntilLevel(2)
         }
         ;PLACE 1 BRAWLER IN FRONT AND UPGRADE IT TO LV 2
-        TDSmacro.canplace(FrontBrawlers[4][1],FrontBrawlers[4][2],"1",300)
-        TDSmacro.upgradeuntil(2)
+        TDSmacro.PlaceTower(FrontBrawlers[4][1],FrontBrawlers[4][2],"1",300)
+        TDSmacro.UpgradeUntilLevel(2)
         ;UPGRADE 3 BRAWLERS IN MID TO LV 3
         Loop 3 {
             Select(MidBrawlers[A_Index][1], MidBrawlers[A_Index][2])
-            TDSmacro.upgradeuntil(3)
+            TDSmacro.UpgradeUntilLevel(3)
         }
         ;PLACE 3 MORE BRAWLERS LV 3 IN MID
         Loop 3 {
             Index := A_index + 3
-            TDSmacro.canplace(MidBrawlers[Index][1],MidBrawlers[Index][2],"1",300)
-            TDSmacro.upgradeuntil(3)
+            TDSmacro.PlaceTower(MidBrawlers[Index][1],MidBrawlers[Index][2],"1",300)
+            TDSmacro.UpgradeUntilLevel(3)
         }
         ;UPGRADE ALL BRAWLER IN FRONT TO LV 3
         for i, v in FrontBrawlers {
             Select(v[1], v[2])
-            TDSmacro.upgradeuntil(3)
+            TDSmacro.UpgradeUntilLevel(3)
         }
         ;UPGRADE ALL BRAWLERS IN MID TO LV 4
         for i, v in MidBrawlers {
             Select(v[1], v[2])
-            TDSmacro.upgradeuntil(4)
+            TDSmacro.UpgradeUntilLevel(4)
         }
         ;UPGRADE ALL BRAWLERS IN FRONT TO LV 4
         for i, v in FrontBrawlers {
             Select(v[1], v[2])
-            TDSmacro.upgradeuntil(4)
+            TDSmacro.UpgradeUntilLevel(4)
         }
         ;UPGRADE ALL BRAWERS IN MID TO MAX, STARTING FROM THE 3RD BRAWLER
         Loop MidBrawlers.length {
             Index := Mod((A_Index + 1), 6) + 1
             Select(MidBrawlers[Index][1], MidBrawlers[Index][2])
-            TDSmacro.upgradeuntil(5)
+            TDSmacro.UpgradeUntilLevel(5)
         }
         ;UPGRADE ALL BRAWLER IN FRONT TO MAX, PROB USELESS CUZ YOU WILL LOSE BEFORE THIS
         for i, v in FrontBrawlers {
             Select(v[1], v[2])
-            TDSmacro.upgradeuntil(5)
+            TDSmacro.UpgradeUntilLevel(5)
         }
-        TDSmacro.restartonlost()
+        TDSmacro.RestartMatch()
     }
 }

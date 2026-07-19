@@ -10,11 +10,11 @@ calibratecam := "F2"
 TDSmacro.patience := 600
 TDSmacro.gamemode := "Hardcore"
 
-pyroloc := [807, 34]
+pyroloc := [812, 52]
 engineerlocations := [
-    [952, 172],
-    [980, 206],
-    [1011, 246]
+    [952, 172+15],
+    [980, 206+15],
+    [1011, 246+15]
 ]
 minilocations := [
     [955, 308]
@@ -34,45 +34,23 @@ ExitLabel(HotkeyName) {
 }
 
 CalibrateLabel(HotkeyName) {
-    MouseMove(A_ScreenWidth // 2, 100, 5)
-    Sleep(100)
-    Click("Right Down")
-    MouseMove(A_ScreenWidth // 2, (A_ScreenHeight * 3) // 4, 8)
-    Sleep(200)
-    Click("Right Up")
-    Sleep(150)
-    Send("{WheelDown 50}")
+    TDSmacro.CalibrateCamera()
 }
 
 StartLabel(HotkeyName) {
     while (true) {
         TDSmacro.lost := false
-        
-        ; 1. Wait and click ready button
-        TDSmacro.clickready()
-        
-        ; 2. Place Pyro and upgrade it to Level 3
-        Send("1")
-        Sleep(20)
-        ;Click(pyroloc[1], pyroloc[2])
-        TDSmacro.canplace(pyroloc[1],pyroloc[2],"1")
-        Sleep(200)
-        TDSmacro.upgradeuntil(3) ; target level 3 index
-        Sleep(50)
-        
-        ; 3. Place Engineers and upgrade them to Level 3
+        TDSmacro.StartMatch()
+        TDSmacro.PlaceTower(pyroloc[1],pyroloc[2],"1")
+        TDSmacro.UpgradeUntilLevel(3)
         for i, v in engineerlocations {
-            TDSmacro.canplace(v[1], v[2], "2",600)
-            TDSmacro.upgradeuntil(3) ; level 3 index
+            TDSmacro.PlaceTower(v[1], v[2], "2",600)
+            TDSmacro.UpgradeUntilLevel(3)
         }
-        
-        ; 4. Place Minis and upgrade them to Level 2
         for i, v in minilocations {
-            TDSmacro.canplace(v[1], v[2], "3")
-            TDSmacro.upgradeuntil(4) ; level 2 index
+            TDSmacro.PlaceTower(v[1], v[2], "3")
+            TDSmacro.UpgradeUntilLevel(4)
         }
-        
-        ; 5. Handle Game Over state and loops back
-        TDSmacro.restartonlost()
+        TDSmacro.RestartMatch()
     }
 }

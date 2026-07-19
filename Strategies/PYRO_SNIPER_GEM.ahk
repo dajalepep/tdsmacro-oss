@@ -10,7 +10,7 @@ calibratecam := "F2"
 TDSmacro.patience := 600
 TDSmacro.gamemode := "Hardcore"
 
-pyroloc := [807, 34]
+pyroloc := [812, 52]
 sniperlocations := [
     [620, 753]
 ]
@@ -32,31 +32,24 @@ ExitLabel(HotkeyName) {
 }
 
 CalibrateLabel(HotkeyName) {
-    MouseMove(A_ScreenWidth // 2, 100, 5)
-    Sleep(100)
-    Click("Right Down")
-    MouseMove(A_ScreenWidth // 2, (A_ScreenHeight * 3) // 4, 8)
-    Sleep(200)
-    Click("Right Up")
-    Sleep(150)
-    Send("{WheelDown 50}")
+    TDSmacro.CalibrateCamera()
 }
 
 StartLabel(HotkeyName) {
     while (true) {
         TDSmacro.lost := false
-        TDSmacro.clickready()
+        TDSmacro.StartMatch()
         Sleep(20)
-        TDSmacro.canplace(pyroloc[1],pyroloc[2],"1")
+        TDSmacro.PlaceTower(pyroloc[1],pyroloc[2],"1")
         Sleep(200)
-        TDSmacro.upgradeuntil(3)
+        TDSmacro.UpgradeUntilLevel(3)
         Sleep(50)
         for i, v in sniperlocations {
-            TDSmacro.canplace(v[1], v[2], "2",450)
-            TDSmacro.upgradeuntil(3)
+            TDSmacro.PlaceTower(v[1], v[2], "2",450)
+            TDSmacro.UpgradeUntilLevel(3)
         }
-        TDSmacro.canplace(evolvedtowerlocation[1], evolvedtowerlocation[2], "3")
-        TDSmacro.upgradeuntil(4)
-        TDSmacro.restartonlost()
+        TDSmacro.PlaceTower(evolvedtowerlocation[1], evolvedtowerlocation[2], "3")
+        TDSmacro.UpgradeUntilLevel(4)
+        TDSmacro.RestartMatch()
     }
 }

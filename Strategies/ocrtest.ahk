@@ -8,7 +8,7 @@ F1:: {
     X1 := 1030
     Y1 := 630
     start := A_TickCount
-    result := TDSmacro.ocrwindowread(X1,Y1,1180,845,2)
+    result := TDSmacro.OcrWindowRead(X1,Y1,1180,845,2)
     ; Split text by spaces OR newlines to catch words cleanly
     tablefromresult := StrSplit(RegExReplace(result.Text, "`r`n", " "), " ")
     
@@ -46,7 +46,7 @@ F4:: {
     X1 := 666
     Y1 := 800-20
     start := A_TickCount
-    result := TDSmacro.ocrwindowread(X1,Y1,755,800,2)
+    result := TDSmacro.OcrWindowRead(X1,Y1,755,800,2)
     
     ; Split text by spaces OR newlines to catch words cleanly
     level := -1
@@ -79,7 +79,7 @@ F4:: {
 F5:: {
     MouseGetPos(&mx,&my)
     timebefor := A_TickCount
-    result := TDSmacro.ocrwindowread(mx+5,my-85,mx+245,my-60)
+    result := TDSmacro.OcrWindowRead(mx+5,my-85,mx+245,my-60)
     
     if (InStr(result.Text,"Place")==0) {
         ToolTip "nothing here, took" A_TickCount-timebefor " ms"
@@ -95,7 +95,7 @@ F6:: {
     Y1 := 45
     X2 := 675
     Y2 := 95
-    result := TDSmacro.ocrwindowread(X1,Y1,X2,Y2,2)
+    result := TDSmacro.OcrWindowRead(X1,Y1,X2,Y2,2)
     
     if (InStr(result.Text,"Wave:")!=0 && InStr(result.Text,"/")!=0) {
         temparray := []
@@ -119,10 +119,20 @@ F6:: {
     SetTimer () => ToolTip(), -3000
 }
 
+F7::{
+    result := TDSmacro.OcrWindowRead(810,245,1110,265)
+    if (InStr(result.Text, "Map is already")!=0) {
+        ToolTip("rejoin gng")
+    }
+    if (InStr(result.Text, "Map changed")!=0 || InStr(result.Text, "map per")) {
+        ToolTip("change successfull")
+    }
+}
+
 F2:: {
     X1 := 1210
     Y1 := 930
-    result := TDSmacro.ocrwindowread(X1,Y1,X1+120,Y1+30,2)
+    result := TDSmacro.OcrWindowRead(X1,Y1,X1+120,Y1+30,2)
     cleanText := RegExReplace(result.Text, "[^\d]")
     
     if (cleanText == "") {
@@ -141,7 +151,7 @@ F3:: {
     W_Left := 360
     H_Left := 150
     
-    resultLeft := TDSmacro.ocrwindowread(X_Left,Y_Left,X_Left+W_Left,Y_Left+H_Left,2)
+    resultLeft := TDSmacro.OcrWindowRead(X_Left,Y_Left,X_Left+W_Left,Y_Left+H_Left,2)
     coins := 0
     pos:=InStr(resultLeft.Text, " Coins")
     try {

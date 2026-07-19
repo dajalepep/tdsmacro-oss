@@ -9,7 +9,7 @@ start := "F1"
 calibratecam := "F2"
 
 TDSmacro.goal := "Triumph"
-TDSmacro.modifiersarrayinput := ["Hidden", "Glass", "Explod", "Limit", "Com", "Fog", "Fly"]
+TDSmacro.modifiersInput := ["Hidden", "Glass", "Explod", "Limit", "Com", "Fog", "Fly"]
 TDSmacro.map := "Dead Ahead"
 TDSmacro.survivalmode := "Easy"
 
@@ -17,8 +17,8 @@ TDSmacro.survivalmode := "Easy"
 ; Coordinate Modes Setup for AHK v2
 CoordMode("Mouse", "Window")
 
-leftsoldiers := [[888,180]]
-rightsoldiers := [[975,180]]
+leftsoldiers := [[889,165]]
+rightsoldiers := [[975,165]]
 soldiers := []
 
 loop 4 {
@@ -49,19 +49,17 @@ ExitLabel(HotkeyName) {
 }
 
 CalibrateLabel(HotkeyName) {
-    TDSmacro.CalibrateCam()
+    TDSmacro.CalibrateCamera()
 }
 
 F4::{
-    MouseGetPos(&mx,&my)
-    TDSmacro.canplace(mx,my,"1",450)
+    TDSmacro.Rejoin()
 }
 
 StartLabel(HotkeyName) {
     while (true) {
         TDSmacro.lost := false
-        TDSmacro.autoskip := true
-        TDSmacro.clickready()
+        TDSmacro.StartMatch()
         early := 0
         for i,v in soldiers {
             placeprice := 450
@@ -69,15 +67,14 @@ StartLabel(HotkeyName) {
                 placeprice := 0
                 early+=1
             }
-            TDSmacro.canplace(v[1],v[2],"1",placeprice)
-            TDSmacro.upgradeuntil(2)
+            TDSmacro.PlaceTower(v[1],v[2],"1",placeprice)
+            TDSmacro.UpgradeUntilLevel(2)
         }
-        ;TDSmacro.autoskip:=false
         for i,v in soldiers {
-            TDSmacro.selecttower(v[1],v[2])
-            TDSmacro.upgradeuntil(3)
+            TDSmacro.TowerSelect(v[1],v[2])
+            TDSmacro.UpgradeUntilLevel(3)
         }
 
-        TDSmacro.restartonlost()
+        TDSmacro.RestartMatch()
     }
 }
