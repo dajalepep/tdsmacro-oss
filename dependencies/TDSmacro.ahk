@@ -470,7 +470,7 @@ class TDSmacro {
             Sleep(50)
             MouseMove(savedX, savedY)
             try {
-                if (ontower == true && InStr(this.OcrWindowRead(665,780,755,800,1).Text,"Level:") == 0) {
+                if (ontower == true && InStr(this.OcrWindowRead(665,780,755,820,1).Text,"Level:") == 0) {
                     this.SelectTower(this.lastTowerCord[1],this.lastTowerCord[2])
                 }
             }
@@ -504,7 +504,7 @@ class TDSmacro {
             res := -1
             loop this.iterativeReads {
                 if (res==-1) {
-                    result := this.OcrWindowRead(665,780,755,800,1)
+                    result := this.OcrWindowRead(665,780,755,820,1)
                     res := this.ParseLevel(result.Text)
                     Sleep(50)
                 }
@@ -553,7 +553,7 @@ class TDSmacro {
             loop this.iterativeReads {
                 if (found == false) {
                     if (this.UseOCR == true) {
-                        result := this.OcrWindowRead(665,780,755,800,1)
+                        result := this.OcrWindowRead(665,780,755,820,1)
                         reslevel := this.ParseLevel(result.Text)
                         if (reslevel >= Level) {
                             found := true
@@ -620,7 +620,7 @@ class TDSmacro {
                             OCRplaced := true
                             break
                         }
-                        result := this.OcrWindowRead(665,780,755,800,1)
+                        result := this.OcrWindowRead(665,780,755,820,1)
                         pos:=InStr(result.Text, "Level:")
                         if (pos != 0) {
                             OCRplaced := true
@@ -643,7 +643,7 @@ class TDSmacro {
             loop this.iterativeReads*mult {
                 if (found == false) {
                     if (this.UseOCR == true) {
-                        result := this.OcrWindowRead(665,780,755,800,1)
+                        result := this.OcrWindowRead(665,780,755,820,1)
                         level := -1
                         pos:=InStr(result.Text, "Level:")
                         if (pos != 0) {

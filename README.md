@@ -112,38 +112,30 @@ Create a new `.ahk` script in the directory (e.g. `my_strat.ahk`) and structure 
 
 ```autohotkey
 #Requires AutoHotkey v2.0
-#Include %A_ScriptDir%\..\dependencies\TDSmacro.ahk
+#Include *i %A_ScriptDir%\dependencies\TDSmacro.ahk
+#Include *i %A_ScriptDir%\..\dependencies\TDSmacro.ahk
+SendMode("Event")
+SetDefaultMouseSpeed(4)
+CoordMode("Mouse", "Window")
 
-; Set up click modes
-SendMode "Event"
-SetDefaultMouseSpeed 4
-CoordMode "Mouse", "Window"
-
-; Define hotkeys
-F1::StartMacro()
-F3::ExitApp()
-
-StartMacro() {
+F1::{
     while (true) {
-        TDSmacro.lost := false
-        
-        ; 1. Wait for match start and click Ready
         TDSmacro.StartMatch()
-        
-        ; 2. Calibrate camera zoom/tilt
-        TDSmacro.CalibrateCamera()
-        
-        ; 3. Place a tower using key slot "1" at (X=1000, Y=500)
-        TDSmacro.PlaceTower(1000, 500, "1")
-        
-        ; 4. Select the tower and upgrade it until Level 3 is reached
-        TDSmacro.TowerSelect(1000, 500)
-        TDSmacro.UpgradeUntilLevel(3) ; Attemps to upgrade until it reaches that level
-        
-        ; 5. Await game finish and press Play Again
+
+        /*insert strat here for example
+
+        TDSmacro.PlaceTower(920,500,"1",600) x,y, keybind, price
+        TDSmacro.UpgradeUntilLevel(4) upgrades a tower until it rearches that lvl
+        Click(100,100) example you just selected another tower
+        TDSmacro.TowerSelect(920,500) tries to select a tower on that location x,y
+        */
+
         TDSmacro.RestartMatch()
     }
 }
+
+F2::TDSmacro.CalibrateCamera()
+F3::ExitApp()
 ```
 
 ---

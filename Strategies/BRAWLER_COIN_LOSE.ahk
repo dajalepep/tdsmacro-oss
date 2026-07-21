@@ -26,27 +26,26 @@ CoordMode("Mouse", "Window")
 
 FrontBrawlers := []
 FrontUpBrawlers := [
-[1400, 196],
-[1366, 196]
+[1375, 197],
+[1346, 161]
 ]
 FrontBotBrawlers := [
-[1366,276],
-[1331,276]
+[1366,283],
+[1326,276]
 ]
 Loop 2 {
-FrontBrawlers.Push(FrontUpBrawlers[A_Index])
 FrontBrawlers.Push(FrontBotBrawlers[A_Index])
+FrontBrawlers.Push(FrontUpBrawlers[A_Index])
 }
 MidBrawlers := [
-[1203,147]
+[1200,157]
 ]
-Loop 2 {
-MidBrawlers.Push([MidBrawlers[1][1], MidBrawlers[1][2]+(30*A_Index)])
+DjLoc := [1245,270]
+Loop 5 {
+X_Index := (A_Index < 4)?40*(Floor(A_Index/2)):-40
+Y_Index := 40*(Mod(A_Index, 2))
+MidBrawlers.Push([MidBrawlers[1][1] + X_Index, MidBrawlers[1][2] + Y_Index])
 }
-for i, v in MidBrawlers.Clone() {
-    MidBrawlers.Push([v[1]+35, v[2]])
-}
-DjLoc := [1250,270]
 
 ; Bind Hotkeys dynamically
 Hotkey("$" . killswitch, ExitLabel)

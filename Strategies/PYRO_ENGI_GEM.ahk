@@ -10,7 +10,7 @@ calibratecam := "F2"
 TDSmacro.patience := 600
 TDSmacro.gamemode := "Hardcore"
 
-pyroloc := [812, 52]
+pyroloc := [812+50, 52+50]
 engineerlocations := [
     [952, 172+15],
     [980, 206+15],
