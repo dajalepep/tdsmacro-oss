@@ -2,7 +2,7 @@
 ; Copyright (c) 2026 dajalepep
 ; Licensed under the MIT License. See LICENSE file for details.
 ; requires FindText.ahk for ahkv2
-; now moving a few stuff to ocr i hope it will go better
+; what should i do next? man im lazy af
 class TDSmacro {
     static lost := false
     static pixelConfidence := 0.05 
@@ -77,6 +77,7 @@ class TDSmacro {
     static lastupgardecost := 0
     static selectingTower := false
     static useRapidOCR := true
+    static privateServerLink := ""
     static hModule := 0
     static whr := ComObject("WinHttp.WinHttpRequest.5.1")
     static __New() {
@@ -91,6 +92,12 @@ class TDSmacro {
 
         ; 1. Read webhook URL (default to empty string if missing)
         this.webhookUrl := IniRead(iniPath, "Settings", "DiscordWebhook", "")
+        this.privateServerLink := IniRead(iniPath, "Settings", "PrivateServerLink", "")
+        if RegExMatch(this.privateServerLink, "code=([^&]+)", &match) {
+            this.privateServerLink := "roblox://navigation/share_links?code=" . match[1] . "&type=Server"
+        } else {
+            this.privateServerLink := ""
+        }
 
         ; 2. Read debug mode (default to false, and parse string safely to boolean)
         debugVal := IniRead(iniPath, "Settings", "Debug", "false")
@@ -148,11 +155,50 @@ class TDSmacro {
             this.colorConfidence := 0.05
         }
 
+        APPBARDATA := Buffer(A_PtrSize == 8 ? 48 : 36, 0)
+        NumPut("UInt", APPBARDATA.Size, APPBARDATA, 0)
+        state := DllCall("Shell32\SHAppBarMessage", "UInt", 4, "Ptr", APPBARDATA, "UInt")
+
+        warnings := []
+
+        if (A_ScreenHeight != 1080) {
+            warnings.Push("Your screen height is NOT 1080, please change it on your settings.")
+        }
+        if (A_ScreenWidth != 1920) {
+            warnings.Push("Your screen width is NOT 1920, please change it on your settings.")
+        }
+        if (A_ScreenDPI != 96) {
+            warnings.Push("Your DPI scale is NOT 100%, please change it on your settings.")
+        }
+        if (state & 1) {
+            warnings.Push("You've enabled Taskbar Auto-Hide, please disable it on your settings.")
+        }
+        robloxTitle := "ahk_exe RobloxPlayerBeta.exe"
+        if WinExist(robloxTitle) {
+            isMaximized := (WinGetMinMax(robloxTitle) == 1)
+            WinGetPos(,, &winW, &winH, robloxTitle)
+
+            if (!isMaximized || winH >= A_ScreenHeight) {
+                warnings.Push("Your current Roblox session isn't in Maximized Window mode (it may be in Fullscreen or normal Windowed mode).")
+            }
+        } else {
+            warnings.Push("You did not open Roblox, please ensure you're playing on Maximized Window Mode.")
+        }
+
+        if (warnings.Length!=0) {
+            tempstr := " You had " warnings.Length " warnings: `n`n"
+            for i,v in warnings {
+                tempstr:=tempstr i ". " v
+                if (i!=warnings.Length) {
+                    tempstr:=tempstr "`n"
+                }
+            }
+            SoundPlay("*16")
+            MsgBox(tempstr)
+        }
+
         try {
             if (this.debug == true) {
-                APPBARDATA := Buffer(A_PtrSize == 8 ? 48 : 36, 0)
-                NumPut("UInt", APPBARDATA.Size, APPBARDATA, 0)
-                state := DllCall("Shell32\SHAppBarMessage", "UInt", 4, "Ptr", APPBARDATA, "UInt")
                 if (state & 1) {
                     Webhook.Send("TDSmacro v1.2 Snapshot Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
@@ -318,8 +364,7 @@ class TDSmacro {
             }
             this.LoopTimeout(loopStartedAt)
             this.CheckSkip()
-            Sleep(50)
-            findresult := this.OcrWindowRead(1210,930,1330,960,3)
+            findresult := this.OcrWindowRead(1210,930,1330,960,1)
             try {
                 currentmoney := Integer(RegExReplace(findresult.Text, "[^\d]"))
                 if (this.debug == true) {
@@ -329,6 +374,7 @@ class TDSmacro {
                     break
                 }
             }
+            Sleep(50)
         }
     }
     ;OCRgetupgradeprice
@@ -524,11 +570,11 @@ class TDSmacro {
                     if (this.CheckLost() == false) {
                         ucache := this.lastupgardecost
                         loop this.iterativeReads {
-                            Sleep(100)
                             seconducache := this.GetUpgradePrice()
                             if (seconducache!=ucache && seconducache!=0) {
                                 break
                             }
+                            Sleep(50)
                         }
                     }
                 }
@@ -601,21 +647,24 @@ class TDSmacro {
         
             targetX := this.Clamp(locationX + offsetX*this.PositiveSquash(it), 8, 1927)
             targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it), 32, 1032)
-        
+            
+            MouseMove(targetX,targetY,2)
+            Sleep(50)
             Click(targetX, targetY)
+            Sleep(200)
+            MouseGetPos(&mx,&my)
+            rescr := this.OcrWindowRead(mx+5,my-85,mx+245,my-60)
+            if (InStr(rescr.Text,"Tower")) {
+                Send("q")
+                this.SelectTower(locationX,locationY)
+                return
+            }
             OCRplaced := false
             if (this.UseOCR == true) {
-                loop this.iterativeReads + 5 {
-                    MouseGetPos(&mx,&my)
-                    rescr := this.OcrWindowRead(mx+5,my-85,mx+245,my-60)
-                    if (InStr(rescr.Text,"Tower")) {
-                        Send("q")
-                        this.SelectTower(locationX,locationY)
-                        Sleep(100)
-                        return
-                    }
+                loop this.iterativeReads {
                     if (OCRplaced == false) {
-                        res := this.OcrWindowRead(mx+10,my+25,mx+100,my+55,3,true)
+                        MouseGetPos(&mx,&my)
+                        res := this.OcrWindowRead(mx+10,my+25,mx+100,my+55,1)
                         if (InStr(res.Text,"Rotate")!=0) {
                             OCRplaced := true
                             break
@@ -720,29 +769,36 @@ class TDSmacro {
         cache:=this.ArrayAutoCorrectSearch(this.goal,this.goallist)
         if (cache[2] = True AND this.rejoining == false) {
             if (cache[1] == this.goallist[1] AND this.map != "" AND this.loses == 0) { ; bassically if it wins
+                if (this.privateServerLink!="") {
+                    this.Rejoin()
+                    return
+                }
                 this.NewGameSetUp(true)
+                this.rejoining := false
+                MouseMove(100,100,0)
+                return
             }
         }
+        ;so below if just if it loses i think
         this.rejoining := false
         loopStartedAt := A_TickCount
+        MouseMove(100, 100, 0)
         while (true) {
-            MouseMove(100, 100, 0)
             Sleep(80)
             if (this.LoopTimeout(loopStartedAt) == true) {
-                loopStartedAt := A_TickCount
+                break
             }
             if (this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
                 break
-            } else if (cache[1] == this.goallist[2] ) {
-                Click(830, 800)
-                Sleep(50)
-                Click(830, 880)
             }
+            Click(830, 800)
+            Sleep(50)
+            Click(830, 880)
         }
     }
 ;Its for selectiong your tower at designated location.
 ;Do i have to explain more?
-    static TowerSelect(locationX,locationY) {
+    static TowerSelect(locationX,locationY) { ; selecttower( -- legacy mark so i can just ctrl+f it
         if (this.CheckLost() == true) {
             return
         }
@@ -763,9 +819,11 @@ class TDSmacro {
             if (this.CheckLost() == true) {
                 break
             }
+            MouseMove(targetX, targetY,2)
+            Sleep(50)
             Click(targetX, targetY)
-            Sleep(300)
-            loop this.iterativeReads*4 {
+            Sleep(150)
+            loop this.iterativeReads*2 {
                 if (this.UseOCR == true) {
                     result := this.OcrWindowRead(665,720,755,850,1)
                     level := -1
@@ -784,7 +842,7 @@ class TDSmacro {
                 }
             }
             it++
-            Sleep(20)
+            Sleep(80)
         }
     }
 ;=================================================================
@@ -922,7 +980,7 @@ class TDSmacro {
         SendText(this.ArrayAutoCorrectSearch(this.map,this.maps)[1])
         Sleep(200)
         Click(782, 339)
-        Sleep(300)
+        Sleep(400)
 
         if (InStr(TDSmacro.OcrWindowRead(810,245,1110,265).Text, "Map is already")!=0) {
             this.Rejoin()
@@ -980,7 +1038,14 @@ class TDSmacro {
     
     static Rejoin() {
         this.rejoining := true
-        Run("roblox://placeId=3260590327")
+        if (this.privateServerLink!="") {
+            if ProcessExist("RobloxPlayerBeta.exe") {
+                ProcessClose("RobloxPlayerBeta.exe")
+            }
+            Run(this.privateServerLink)
+        } else {
+            Run("roblox://placeId=3260590327")
+        }
         Sleep(10000)
         loopStartedAt := A_TickCount
         while (true) {
@@ -1010,7 +1075,7 @@ class TDSmacro {
             if (this.LoopTimeout(loopStartedAt) == true) {
                 return
             }
-            if (pos := this.Find(this.closemark, 0.05, 0.05, 1160, 250, 1210, 300)) {
+            if (pos := this.Find(this.closemark, 0.05, 0.05, 1160, 250, 1210, 350)) {
                 Sleep(200)
                 break
             }
