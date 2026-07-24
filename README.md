@@ -100,6 +100,8 @@ To prevent committing private details like Discord webhooks to public repositori
     UseTimescale=false
     # keep your tickets above this certain limit
     TimescaleUntil=1
+    # if you dont have vip, you can use private servers to override map
+    PrivateServerLink=
     # new version for level checking, set to false if you wanna use the legacy kinda broken version
     UseOCR=true
     # error tolarance default for Findtext.ahk

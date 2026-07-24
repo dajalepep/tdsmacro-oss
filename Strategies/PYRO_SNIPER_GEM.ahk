@@ -9,7 +9,6 @@ start := "F1"
 calibratecam := "F2"
 TDSmacro.patience := 600
 TDSmacro.gamemode := "Hardcore"
-
 pyroloc := [812+50, 52+50]
 sniperlocations := [
     [620, 753]

@@ -74,12 +74,11 @@ class TDSmacro {
     static webhookUrl := ""
     static UseTimescale := false
     static timescaleUntil:= 1
-    static lastupgardecost := 0
+    static lastUpgradeCost := 0
     static selectingTower := false
     static useRapidOCR := true
     static privateServerLink := ""
     static hModule := 0
-    static whr := ComObject("WinHttp.WinHttpRequest.5.1")
     static __New() {
         SplitPath(A_LineFile, , &moduleDir)
         if FileExist(A_ScriptDir "\config.ini") {
@@ -130,12 +129,12 @@ class TDSmacro {
             this.patience := 150
         }
         try {
-            this.giveUpTolerance := Max(1,Integer(IniRead(iniPath, "Settings", "giveUpTolerance", "2")))
+            this.giveUpTolerance := Max(1,Integer(IniRead(iniPath, "Settings", "GiveUpTolerance", "2")))
         } catch {
             this.giveUpTolerance := 2
         }
         try {
-            this.iterativeReads := Max(1,Integer(IniRead(iniPath, "Settings", "iterativeReads", "5")))
+            this.iterativeReads := Max(1,Integer(IniRead(iniPath, "Settings", "IterativeReads", "5")))
         } catch {
             this.iterativeReads := 5
         }
@@ -145,12 +144,12 @@ class TDSmacro {
             this.timescaleUntil := 1
         }
         try {
-            this.pixelConfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "pixelConfidence", "0.05")),0,1)
+            this.pixelConfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "PixelConfidence", "0.05")),0,1)
         } catch {
             this.pixelConfidence := 0.05
         }
         try {
-            this.colorConfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "colorConfidence", "0.05")),0,1)
+            this.colorConfidence := this.Clamp(Number(IniRead(iniPath, "Settings", "ColorConfidence", "0.05")),0,1)
         } catch {
             this.colorConfidence := 0.05
         }
@@ -200,9 +199,9 @@ class TDSmacro {
         try {
             if (this.debug == true) {
                 if (state & 1) {
-                    Webhook.Send("TDSmacro v1.2 Snapshot Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3 Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
-                    Webhook.Send("TDSmacro v1.2 Snapshot Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3 Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 }
             }
         }
@@ -340,7 +339,7 @@ class TDSmacro {
                 }
                 return {Text: ""}
             } catch Error as err {
-                MsgBox(err.Message)
+                Webhook.SendDebugLog("function OcrWindowRead error: " err)
                 return {Text: ""}
             }
         }
@@ -404,7 +403,7 @@ class TDSmacro {
         }
     
         if (price != 0) { 
-            this.lastupgardecost := price 
+            this.lastUpgradeCost := price 
             Webhook.SendDebugLog("Upgrade Price found at $" price) 
         }
         return price 
@@ -568,7 +567,7 @@ class TDSmacro {
                 loop (Level-res) {
                     this.UpgradeUntilLevel(res+A_Index)
                     if (this.CheckLost() == false) {
-                        ucache := this.lastupgardecost
+                        ucache := this.lastUpgradeCost
                         loop this.iterativeReads {
                             seconducache := this.GetUpgradePrice()
                             if (seconducache!=ucache && seconducache!=0) {
@@ -595,30 +594,28 @@ class TDSmacro {
         }
         loopStartedAt := A_TickCount
         while (true) {
-            found := false
-            loop this.iterativeReads {
-                if (found == false) {
-                    if (this.UseOCR == true) {
-                        result := this.OcrWindowRead(665,780,755,820,1)
-                        reslevel := this.ParseLevel(result.Text)
-                        if (reslevel >= Level) {
-                            found := true
-                        }
-                    } else {
-                        if (this.Find(this.levels[Level],0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
-                            found := true
-                        }
-                    }
-                }
-            }
-            if (found == true) {
-                break
-            }
-            Sleep(50)
             Send("e")
             this.CheckSkip(true)
             this.LoopTimeout(loopStartedAt)
             if (this.CheckLost() == true) {
+                break
+            }
+            Sleep(100)
+            found := false
+            if (found == false) {
+                if (this.UseOCR == true) {
+                    result := this.OcrWindowRead(665,780,755,820,1)
+                    reslevel := this.ParseLevel(result.Text)
+                    if (reslevel >= Level) {
+                        found := true
+                    }
+                } else {
+                    if (this.Find(this.levels[Level],0,0,A_ScreenWidth/4,A_ScreenHeight/2,A_ScreenWidth*3/4,A_ScreenHeight)) {
+                        found := true
+                    }
+                }
+            }
+            if (found == true) {
                 break
             }
         }
@@ -722,7 +719,7 @@ class TDSmacro {
     }
     static StartMatch() {
         this.lost := false
-        this.lastupgardecost := 0
+        this.lastUpgradeCost := 0
         this.selectingTower := false
         this.lastTowerCord := [100, 100]
         if (this.UseTimescale == true) {
@@ -822,8 +819,8 @@ class TDSmacro {
             MouseMove(targetX, targetY,2)
             Sleep(50)
             Click(targetX, targetY)
-            Sleep(150)
-            loop this.iterativeReads*2 {
+            Sleep(50)
+            loop this.iterativeReads*3 {
                 if (this.UseOCR == true) {
                     result := this.OcrWindowRead(665,720,755,850,1)
                     level := -1
@@ -840,6 +837,7 @@ class TDSmacro {
                         return
                     }
                 }
+                Sleep(10)
             }
             it++
             Sleep(80)
@@ -910,10 +908,13 @@ class TDSmacro {
         Send("{WheelDown 50}")
     }
     
-    static NewGameSetUp(isTriumph:=false) {
+    static NewGameSetUp(isTriumph:=false,failstartedat:=0) {
         Webhook.SendDebugLog("New game has started boi")
         MouseMove(100, 100, 0)
         loopStartedAt := A_TickCount
+        if (failstartedat!=0) {
+            loopStartedAt := failstartedat
+        }
         while (true) {
             Sleep(100)
             if (this.LoopTimeout(loopStartedAt) == true) {
@@ -971,7 +972,7 @@ class TDSmacro {
             }
         }
         if (found = false) {
-            this.NewGameSetUp()
+            this.NewGameSetUp(false,A_TickCount)
             return
         }
 
@@ -982,24 +983,24 @@ class TDSmacro {
         Click(782, 339)
         Sleep(400)
 
-        if (InStr(TDSmacro.OcrWindowRead(810,245,1110,265).Text, "Map is already")!=0) {
+        if (InStr(this.OcrWindowRead(810,245,1110,265).Text, "Map is already")!=0) {
             this.Rejoin()
             return
         }
 
         Send("{s Down}")
-        Sleep(4000)
+        Sleep(3800)
         Send("{s Up}")
         Sleep(200)
 
         Send("{d Down}")
-        Sleep(3500)
+        Sleep(3300)
         Send("{d Up}")
-        Sleep(200)
+        Sleep(100)
         Send("{e Down}")
-        Sleep(200)
+        Sleep(300)
         Send("{e Up}")
-        Sleep(200)
+        Sleep(100)
         Click(972,878)
         loopStartedAt := A_TickCount
         while (true) {
