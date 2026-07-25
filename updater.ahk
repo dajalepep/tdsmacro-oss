@@ -28,58 +28,68 @@ DoUpdate() {
     branch := radSnap.Value ? "snapshots" : "main"
     zipUrl := "https://github.com/" repo "/archive/refs/heads/" branch ".zip"
     
-    txtStatus.Text := "Status: Downloading (" branch ")..."
+    btnUpdate.Enabled := false
     
-    ; 1. Download zip
-    if FileExist(tempZip)
-        FileDelete(tempZip)
-    Download(zipUrl, tempZip)
-    
-    txtStatus.Text := "Status: Extracting..."
-    if DirExist(tempFolder)
-        DirDelete(tempFolder, true)
-    DirCreate(tempFolder)
-    
-    ; 2. Extract zip with PowerShell
-    psCmd := "powershell -NoProfile -Command `"Expand-Archive -Path '" tempZip "' -DestinationPath '" tempFolder "' -Force`""
-    RunWait(psCmd, , "Hide")
-    
-    txtStatus.Text := "Status: Copying files..."
-    
-    ; 3. Get extracted root folder inside zip
-    extractDir := tempFolder
-    Loop Files, tempFolder "\*", "D" {
-        extractDir := A_LoopFilePath
-        break
-    }
-    
-    ; 4. Copy files (keeps your config.ini untouched)
-    Loop Files, extractDir "\*.*", "R" {
-        relPath := SubStr(A_LoopFilePath, StrLen(extractDir) + 2)
-        dest := A_WorkingDir "\" relPath
+    try {
+        txtStatus.Text := "Status: Downloading (" branch ")..."
         
-        ; Merge new settings into config.ini without overwriting existing user values
-        if (relPath = "config.ini" && FileExist(dest)) {
-            MergeConfig(A_LoopFilePath, dest)
-            continue
+        ; 1. Download zip
+        if FileExist(tempZip)
+            FileDelete(tempZip)
+        Download(zipUrl, tempZip)
+        
+        txtStatus.Text := "Status: Extracting..."
+        if DirExist(tempFolder)
+            DirDelete(tempFolder, true)
+        DirCreate(tempFolder)
+        
+        ; 2. Extract zip with PowerShell
+        psCmd := "powershell -NoProfile -Command `"Expand-Archive -Path '" tempZip "' -DestinationPath '" tempFolder "' -Force`""
+        RunWait(psCmd, , "Hide")
+        
+        txtStatus.Text := "Status: Copying files..."
+        
+        ; 3. Get extracted root folder inside zip
+        extractDir := tempFolder
+        Loop Files, tempFolder "\*", "D" {
+            extractDir := A_LoopFilePath
+            break
         }
-        if (relPath = "updater.ahk" && FileExist(dest))
-            continue
-            
-        SplitPath(dest, , &destDir)
-        if !DirExist(destDir)
-            DirCreate(destDir)
-        FileCopy(A_LoopFilePath, dest, true)
-    }
-    
-    ; 5. Clean up temp files
-    if FileExist(tempZip)
-        FileDelete(tempZip)
-    if DirExist(tempFolder)
-        DirDelete(tempFolder, true)
         
-    txtStatus.Text := "Status: Update Complete!"
-    MsgBox("Successfully updated to '" branch "' branch!", "Updater", 64)
+        ; 4. Copy files (merges config.ini, skips updater.ahk)
+        Loop Files, extractDir "\*.*", "R" {
+            relPath := SubStr(A_LoopFilePath, StrLen(extractDir) + 2)
+            dest := A_WorkingDir "\" relPath
+            
+            ; Merge new settings into config.ini without overwriting existing user values
+            if (relPath = "config.ini" && FileExist(dest)) {
+                MergeConfig(A_LoopFilePath, dest)
+                continue
+            }
+            if (relPath = "updater.ahk" && FileExist(dest))
+                continue
+                
+            SplitPath(dest, , &destDir)
+            if !DirExist(destDir)
+                DirCreate(destDir)
+            FileCopy(A_LoopFilePath, dest, true)
+        }
+        
+        ; 5. Clean up temp files
+        if FileExist(tempZip)
+            FileDelete(tempZip)
+        if DirExist(tempFolder)
+            DirDelete(tempFolder, true)
+            
+        txtStatus.Text := "Status: Update Complete!"
+        MsgBox("Successfully updated to '" branch "' branch!", "Updater", 64)
+
+    } catch Error as err {
+        txtStatus.Text := "Status: Update Failed!"
+        MsgBox("Update failed: " . err.Message, "Error", 16)
+    }
+
+    btnUpdate.Enabled := true
 }
 
 ; --- Smart Config Merger ---
