@@ -79,6 +79,7 @@ class TDSmacro {
     static useRapidOCR := true
     static privateServerLink := ""
     static hModule := 0
+    static titleBarOffsetDelta := 0
     static __New() {
         SplitPath(A_LineFile, , &moduleDir)
         if FileExist(A_ScriptDir "\config.ini") {
@@ -175,7 +176,12 @@ class TDSmacro {
         robloxTitle := "ahk_exe RobloxPlayerBeta.exe"
         if WinExist(robloxTitle) {
             isMaximized := (WinGetMinMax(robloxTitle) == 1)
-            WinGetPos(,, &winW, &winH, robloxTitle)
+            WinGetPos(&wX, &wY, &winW, &winH, robloxTitle)
+            WinGetClientPos(&cX, &cY, &cW, &cH, robloxTitle)
+            currentTitleBarH := cY - wY
+            if (currentTitleBarH > 0) {
+                this.titleBarOffsetDelta := currentTitleBarH - 31
+            }
 
             if (!isMaximized || winH >= A_ScreenHeight) {
                 warnings.Push("Your current Roblox session isn't in Maximized Window mode (it may be in Fullscreen or normal Windowed mode).")
@@ -199,9 +205,9 @@ class TDSmacro {
         try {
             if (this.debug == true) {
                 if (state & 1) {
-                    Webhook.Send("TDSmacro v1.3 Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3 Snapshot Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
-                    Webhook.Send("TDSmacro v1.3 Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3 Snapshot Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 }
             }
         }
@@ -418,7 +424,7 @@ class TDSmacro {
         if (this.gamemode == this.gamemodes[1]) { ; cuz hardcore cant use consumeable so we have to shift it by a bit
             xconstant := 730
         }
-        Click(xconstant,1000)
+        Click(xconstant, 1000 + this.titleBarOffsetDelta)
         Sleep(50)
         ticketsleft := 0
         loopStartedAt := A_TickCount
@@ -437,18 +443,18 @@ class TDSmacro {
                 }
             }
             if (ticketsleft > this.timescaleUntil) {
-                Click(970,630)
-                Sleep(500)
-                Click(xconstant,1000)
-                Sleep(500)
-                Click(xconstant,1000)
+                Click(970, 630 + this.titleBarOffsetDelta)
+                Sleep(100)
+                Click(xconstant, 1000 + this.titleBarOffsetDelta)
+                Sleep(100)
+                Click(xconstant, 1000 + this.titleBarOffsetDelta)
                 break
             } else {
                 if (ticketsleft <= this.timescaleUntil && ticketsleft != 0) {
                     this.UseTimescale := false
                     Webhook.SendScreenshot("Saving timescale tickets, disabling timescale and runs macro as usual")
-                    Sleep(2000)
-                    Click(970,700)
+                    Sleep(1500)
+                    Click(970, 700 + this.titleBarOffsetDelta)
                     break
                 }
             }
@@ -511,7 +517,7 @@ class TDSmacro {
             ;MouseMove(pos.x, pos.y, 10)
             Sleep(50)
             ;FindText().Click(pos.x, pos.y, "L")
-            Click(1023,217)
+            Click(1023, 217 + this.titleBarOffsetDelta)
             Sleep(50)
             MouseMove(savedX, savedY)
             try {
@@ -643,7 +649,7 @@ class TDSmacro {
             offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2))
         
             targetX := this.Clamp(locationX + offsetX*this.PositiveSquash(it), 8, 1927)
-            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it), 32, 1032)
+            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it) + this.titleBarOffsetDelta, 32, 1032)
             
             MouseMove(targetX,targetY,2)
             Sleep(50)
@@ -788,9 +794,9 @@ class TDSmacro {
             if (this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
                 break
             }
-            Click(830, 800)
+            Click(830, 800 + this.titleBarOffsetDelta)
             Sleep(50)
-            Click(830, 880)
+            Click(830, 880 + this.titleBarOffsetDelta)
         }
     }
 ;Its for selectiong your tower at designated location.
@@ -810,7 +816,7 @@ class TDSmacro {
             offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2)) + Ceil((locationY/(A_ScreenHeight/2)-1)*15)
         
             targetX := this.Clamp(locationX + offsetX*this.PositiveSquash(it), 8, 1927)
-            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it), 32, 1032)
+            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it) + this.titleBarOffsetDelta, 32, 1032)
             this.CheckSkip()
             this.LoopTimeout(loopStartedAt)
             if (this.CheckLost() == true) {
@@ -853,7 +859,7 @@ class TDSmacro {
     static ChangePassive(rows:=1,hasAbility:=0,column:=1) {
         trackorigin := [1400, 640]
         Sleep(50)
-        Click(trackorigin[1]+(rows-1)*65,trackorigin[2]+(column-1)*85+hasAbility*105)
+        Click(trackorigin[1]+(rows-1)*65,trackorigin[2]+(column-1)*85+hasAbility*105 + this.titleBarOffsetDelta)
     }
 ;=================================================================
 ;Use Your Tower Ability
@@ -925,9 +931,9 @@ class TDSmacro {
             }
             if (isTriumph==true) {
                 if (this.Find(this.triumphtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
-                    Click(830, 800)
+                    Click(830, 800 + this.titleBarOffsetDelta)
                     Sleep(50)
-                    Click(830, 880)
+                    Click(830, 880 + this.titleBarOffsetDelta)
                 }
             }
         }
@@ -937,50 +943,47 @@ class TDSmacro {
         Send("{r}")
         Sleep(200)
         Send("{Enter}")
-        Sleep(6000)
+        Sleep(6200)
 
-        this.VoteModifiers()
+        if (failstartedat==0) {
+            this.VoteModifiers()
+        }
 
         this.CalibrateCamera(4)
-        Sleep(200)
+        Send("{Shift Down}")
         Send("{s Down}")
-        Sleep(4500)
+        Sleep(1500)
         Send("{s Up}")
-        Sleep(200)
-
         Send("{w Down}")
-        Sleep(2000)
+        Sleep(667)
         Send("{w Up}")
-        Sleep(200)
-
         Send("{a Down}")
-        Sleep(2200)
+        Sleep(733)
         Send("{a Up}")
-        Sleep(200)
-
         Send("{e Down}")
         Sleep(300)
         Send("{e Up}")
-        Sleep(1000)
+        Sleep(400)
         found := false
         Loop 20 {
             if (found = false) {
                 Sleep(50)
-                if (this.Find(this.corneredAtext, 0.15, 0.05, 695, 230, 715, 250)) {
+                if (this.Find(this.corneredAtext, 0.2, 0.125, 690, 225, 720, 255)) {
                     found := true
                 }   
             }
         }
         if (found = false) {
+            Send("{Shift Up}")
             this.NewGameSetUp(false,A_TickCount)
             return
         }
 
         ; do these below if it found
-        Click(733, 248)
+        Click(733, 248 + this.titleBarOffsetDelta)
         SendText(this.ArrayAutoCorrectSearch(this.map,this.maps)[1])
         Sleep(200)
-        Click(782, 339)
+        Click(782, 339 + this.titleBarOffsetDelta)
         Sleep(400)
 
         if (InStr(this.OcrWindowRead(810,245,1110,265).Text, "Map is already")!=0) {
@@ -989,19 +992,18 @@ class TDSmacro {
         }
 
         Send("{s Down}")
-        Sleep(3800)
+        Sleep(1265)
         Send("{s Up}")
-        Sleep(200)
-
         Send("{d Down}")
-        Sleep(3300)
+        Sleep(1100)
         Send("{d Up}")
         Sleep(100)
         Send("{e Down}")
         Sleep(300)
         Send("{e Up}")
         Sleep(100)
-        Click(972,878)
+        Click(972, 878 + this.titleBarOffsetDelta)
+        Send("{Shift Up}")
         loopStartedAt := A_TickCount
         while (true) {
             if (this.LoopTimeout(loopStartedAt) == true) {
@@ -1011,7 +1013,6 @@ class TDSmacro {
                 break
             }
         }
-        Sleep(150)
         this.CalibrateCamera()
     }
 
@@ -1028,13 +1029,13 @@ class TDSmacro {
         }
         Webhook.SendDebugLog("Selecting Modifiers")
         Sleep(50)
-        Click(73,976)
+        Click(73, 976 + this.titleBarOffsetDelta)
         Sleep(50)
         for v in cache {
-            Click(this.modifierorigin[1]+Mod(v,4)*120,this.modifierorigin[2]+Floor(v/4)*110)
+            Click(this.modifierorigin[1]+Mod(v,4)*120, this.modifierorigin[2]+Floor(v/4)*110 + this.titleBarOffsetDelta)
             Sleep(10)
         }
-        Click(1125,888)
+        Click(1125, 888 + this.titleBarOffsetDelta)
     }
     
     static Rejoin() {
@@ -1067,7 +1068,7 @@ class TDSmacro {
                 break
             }
             if (pos := this.Find(this.loginRewardsImg, 0.05, 0.05, 640, 375, 700, 405)) {
-                Click(970,800)
+                Click(970, 800 + this.titleBarOffsetDelta)
             }
         }
         Webhook.SendDebugLog("Play text found")
@@ -1083,10 +1084,10 @@ class TDSmacro {
             Sleep(50)
         }
         cache := this.ArrayAutoCorrectSearch(this.gamemode,this.gamemodes)
-        Click((cache[3]-1)*250+this.gamesorigin[1],this.gamesorigin[2])
+        Click((cache[3]-1)*250+this.gamesorigin[1], this.gamesorigin[2] + this.titleBarOffsetDelta)
         Sleep(500)
         if (cache[1] = this.gamemodes[3]) {
-            Click((this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]-1)*250-125+this.gamesorigin[1],this.gamesorigin[2])
+            Click((this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]-1)*250-125+this.gamesorigin[1], this.gamesorigin[2] + this.titleBarOffsetDelta)
         }
         Webhook.SendDebugLog("Awaiting for solotext")
         loopStartedAt := A_TickCount
