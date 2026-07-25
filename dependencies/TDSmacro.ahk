@@ -37,6 +37,7 @@ class TDSmacro {
     static inventoryimg := "|<>*137$22.0sQ07zs0TzU1zy0Dnw0jDE6wxUPzq1Dz84QsUE02300AQ00tk03b00CSQtttzbjbyTyQtxxnjXzzw7zzW" ;to check if player is on the uhh vote for a map type shi
     static solotext := "|<>*142$66.zzzzzzw3zzzy0Dzzzw3zzzs03zzzw3zzzU03zzzw3zzzU03zzzw3zzz003zzzw3zzz0zbz0Dw3y0T0zzw03w7s070Tzs01w7k0303zk00w7U01U0DU60w70A1k03UT0Q70y0s01UTUQ70z0z01UTUQ70z0zw1UTUQ70z0zy0UTUQ70z0bz1UT0Q70y0Uy1k60w7UA1001k00w7U01003s01w7k03007w03w7s07k0Tz0Dw7y0TU"
     static disconnectedtext := "|<>*147$115.zzbzzzzzzzzzzzzzzzy0TXzzzzzzzzzzzzbzzz03tzzzzzzzzzzzznzzzVkzzzzzzzzzzzzztzzzkyDzzzzzzzzzzzzwzzzsT6D3wDVsVsVy3w83Uy4DX60s30Q0Q0S0s01UC07tX6sP766C6CCMPbXa63wlXwTXn7b7bDYTnnt7VwMsSTnsXnXnU2Tts0XkyAS3DtwFtltk1Dww0FsTCDtXwSMwswtzXySTswC76QkyCASQSQSkz77gQ07X0Q1UCDCDD0Q1Uk700DlkT1sD7b7bsT1sS7kY"
+    static inventoryclosemark := "|<>*169$17.nzb3y43s03U800s03s0Ds0zk1zU3y03s03U020s03s4DsQztk"
     static maps := [
         "Abandoned City", "Abyssal Trench", "Autumn Falling", "Black Spot Exchange", "Candy Valley",
         "Cataclysm", "Chess Board", "Construction Crazy", "Coral Deep", "Crossroads",
@@ -225,8 +226,8 @@ class TDSmacro {
 ;toX and toY is the second location
 ;Its for determining the width and height of the search field
     static Find(img, err1_mod:=0, err2_mod:=0, fromX:=0, fromY:= 0, toX:= A_ScreenWidth, toY:= A_ScreenHeight) {
-        adjFromY := (fromY == 0) ? 0 : fromY + this.titleBarOffsetDelta
-        adjToY := (toY == A_ScreenHeight) ? A_ScreenHeight : toY + this.titleBarOffsetDelta
+        adjFromY := (fromY == 0) ? 0 : fromY - Abs(this.titleBarOffsetDelta)
+        adjToY := (toY == A_ScreenHeight) ? A_ScreenHeight : toY + Abs(this.titleBarOffsetDelta)
         ; FindText V2 returns an array of objects if found, or false if not
         if (this.debug == true) {
             try {
@@ -258,8 +259,8 @@ class TDSmacro {
 ;Scale is for scaling the search field
 ;process is to change the OCR process
     static OcrWindowRead(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=1,gray:=0,process:=unset) {
-        adjY1 := (y1 == 0) ? 0 : y1 + this.titleBarOffsetDelta
-        adjY2 := (y2 == A_ScreenHeight) ? A_ScreenHeight : y2 + this.titleBarOffsetDelta
+        adjY1 := (y1 == 0) ? 0 : y1 - Abs(this.titleBarOffsetDelta)
+        adjY2 := (y2 == A_ScreenHeight) ? A_ScreenHeight : y2 + Abs(this.titleBarOffsetDelta)
         ; 1. Pre-calculate structural dimensions
         w := Abs(x2 - x1)
         h := Abs(adjY2 - adjY1)
@@ -714,6 +715,7 @@ class TDSmacro {
                 }
             }
             if (found == true) {
+                Sleep(100)
                 break
             }
 
@@ -939,6 +941,9 @@ class TDSmacro {
                     Sleep(50)
                     Click(830, 880 + this.titleBarOffsetDelta)
                 }
+                if (pos:=this.Find(this.inventoryclosemark,0.05,0.05, 1070, 80, 1110, 125)) {
+                    Click(pos.x,pos.y)
+                }
             }
         }
         Sleep(300)
@@ -953,7 +958,7 @@ class TDSmacro {
             this.VoteModifiers()
         }
 
-        this.CalibrateCamera(4)
+        this.CalibrateCamera(3)
         Send("{Shift Down}")
         Send("{s Down}")
         Sleep(1500)
@@ -996,10 +1001,10 @@ class TDSmacro {
         }
 
         Send("{s Down}")
-        Sleep(1265)
+        Sleep(1150)
         Send("{s Up}")
         Send("{d Down}")
-        Sleep(1100)
+        Sleep(1050)
         Send("{d Up}")
         Sleep(100)
         Send("{e Down}")
