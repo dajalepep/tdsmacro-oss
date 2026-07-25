@@ -34,18 +34,18 @@ DoUpdate() {
         txtStatus.Text := "Status: Downloading (" branch ")..."
         
         ; 1. Download zip
-        if FileExist(tempZip)
-            FileDelete(tempZip)
+        try FileDelete(tempZip)
         Download(zipUrl, tempZip)
         
         txtStatus.Text := "Status: Extracting..."
-        if DirExist(tempFolder)
-            DirDelete(tempFolder, true)
+        try DirDelete(tempFolder, true)
+        Sleep(100)
         DirCreate(tempFolder)
         
         ; 2. Extract zip with PowerShell
         psCmd := "powershell -NoProfile -Command `"Expand-Archive -Path '" tempZip "' -DestinationPath '" tempFolder "' -Force`""
         RunWait(psCmd, , "Hide")
+        Sleep(150) ; Brief pause for Windows file handles to release
         
         txtStatus.Text := "Status: Copying files..."
         
@@ -63,7 +63,7 @@ DoUpdate() {
             
             ; Merge new settings into config.ini without overwriting existing user values
             if (relPath = "config.ini" && FileExist(dest)) {
-                MergeConfig(A_LoopFilePath, dest)
+                try MergeConfig(A_LoopFilePath, dest)
                 continue
             }
             if (relPath = "updater.ahk" && FileExist(dest))
@@ -72,21 +72,19 @@ DoUpdate() {
             SplitPath(dest, , &destDir)
             if !DirExist(destDir)
                 DirCreate(destDir)
-            FileCopy(A_LoopFilePath, dest, true)
+            try FileCopy(A_LoopFilePath, dest, true)
         }
         
         ; 5. Clean up temp files
-        if FileExist(tempZip)
-            FileDelete(tempZip)
-        if DirExist(tempFolder)
-            DirDelete(tempFolder, true)
+        try FileDelete(tempZip)
+        try DirDelete(tempFolder, true)
             
         txtStatus.Text := "Status: Update Complete!"
         MsgBox("Successfully updated to '" branch "' branch!", "Updater", 64)
 
     } catch Error as err {
         txtStatus.Text := "Status: Update Failed!"
-        MsgBox("Update failed: " . err.Message, "Error", 16)
+        MsgBox("Update failed at: " . err.What . "`n`nDetail: " . err.Message . " (Line " . err.Line . ")", "Update Error", 16)
     }
 
     btnUpdate.Enabled := true
