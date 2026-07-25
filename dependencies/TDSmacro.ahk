@@ -225,13 +225,15 @@ class TDSmacro {
 ;toX and toY is the second location
 ;Its for determining the width and height of the search field
     static Find(img, err1_mod:=0, err2_mod:=0, fromX:=0, fromY:= 0, toX:= A_ScreenWidth, toY:= A_ScreenHeight) {
+        adjFromY := (fromY == 0) ? 0 : fromY + this.titleBarOffsetDelta
+        adjToY := (toY == A_ScreenHeight) ? A_ScreenHeight : toY + this.titleBarOffsetDelta
         ; FindText V2 returns an array of objects if found, or false if not
         if (this.debug == true) {
             try {
                 w := Abs(toX - fromX)
-                h := Abs(toY - fromY)
+                h := Abs(adjToY - adjFromY)
                 startX := Min(toX, fromX)
-                startY := Min(toY, fromY)
+                startY := Min(adjToY, adjFromY)
                 DebugGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
                 DebugGui.BackColor := "0000FF"
                 WinSetTransColor("EEAA99", DebugGui) 
@@ -242,7 +244,7 @@ class TDSmacro {
                 SetTimer(() => DebugGui.Destroy(), -1000)
             }
         }
-        if (ok := FindText(&locX, &locY, fromX, fromY, toX, toY, this.pixelConfidence + err1_mod, this.colorConfidence + err2_mod, img)) {
+        if (ok := FindText(&locX, &locY, fromX, adjFromY, toX, adjToY, this.pixelConfidence + err1_mod, this.colorConfidence + err2_mod, img)) {
             return {x: locX, y: locY}
         }
         return false
@@ -256,11 +258,13 @@ class TDSmacro {
 ;Scale is for scaling the search field
 ;process is to change the OCR process
     static OcrWindowRead(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=1,gray:=0,process:=unset) {
+        adjY1 := (y1 == 0) ? 0 : y1 + this.titleBarOffsetDelta
+        adjY2 := (y2 == A_ScreenHeight) ? A_ScreenHeight : y2 + this.titleBarOffsetDelta
         ; 1. Pre-calculate structural dimensions
         w := Abs(x2 - x1)
-        h := Abs(y2 - y1)
+        h := Abs(adjY2 - adjY1)
         startX := Min(x1, x2)
-        startY := Min(y1, y2)
+        startY := Min(adjY1, adjY2)
     
         ; 2. Find target window and convert Client coordinates to true Screen coordinates
         targetWin := (IsSet(process) && process != "") ? process : "A"
