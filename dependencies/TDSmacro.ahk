@@ -84,6 +84,7 @@ class TDSmacro {
     static netHourlyFails := 0
     static avgHourlyMatchDuration := 0
     static netHourlyMatches := 0
+    static lastHourlyMatchAt := A_TickCount
     static lastReport := A_TickCount
     static lastMatchAt := A_TickCount
     static hModule := 0
@@ -492,7 +493,6 @@ class TDSmacro {
 
     static HourlyReport() {
         if (1000*60*60<=A_TickCount-this.lastReport) {
-            cachereport := this.lastReport
             this.lastReport := A_TickCount
             formated := [this.netHourlyRestarts,this.netHourlyFails,this.avgHourlyMatchDuration,this.netHourlyGain[1],this.netHourlyGain[2]]
             this.netHourlyRestarts := 0
@@ -500,7 +500,8 @@ class TDSmacro {
             this.avgHourlyMatchDuration := 0
             this.netHourlyGain := [0,0]
             this.netHourlyMatches := 0
-            Webhook.SendHourlyReport(formated[1],formated[2],formated[3],formated[4],formated[5],(this.lastMatchAt-this.lastReport)/1000/60/60)
+            this.lastHourlyMatchAt := this.lastMatchAt
+            Webhook.SendHourlyReport(formated[1],formated[2],formated[3],formated[4],formated[5],(this.lastHourlyMatchAt-this.lastMatchAt)/1000/60/60)
         }
     }
 
