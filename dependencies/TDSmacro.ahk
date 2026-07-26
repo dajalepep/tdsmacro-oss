@@ -500,8 +500,8 @@ class TDSmacro {
             this.avgHourlyMatchDuration := 0
             this.netHourlyGain := [0,0]
             this.netHourlyMatches := 0
-            this.lastHourlyMatchAt := this.lastMatchAt
             Webhook.SendHourlyReport(formated[1],formated[2],formated[3],formated[4],formated[5],(this.lastHourlyMatchAt-this.lastMatchAt)/1000/60/60)
+            this.lastHourlyMatchAt := this.lastMatchAt
         }
     }
 
