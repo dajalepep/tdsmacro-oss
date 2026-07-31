@@ -28,7 +28,7 @@ class TDSmacro {
     static triumphtext := "|<>*136$43.00000C00000070000003U000001k000000s000000Q000000C00000070Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0DzU0zzU7zk0Tzk3zs0Dzs1zw07zw0zy03zy0Tz01zz0DzU0zzU7zk0Tzk2"
     static playtext := "|<>*166$55.07szzky7w00wTzsTXy00CDzs7ky8y77zw3wS4TVXzy8y76DklzyATV77sMzz67s3XsQTz7Xw3k0CDzXkz1s0D7zU0TVw0TXzk0DsyDzlzk03wT7zs08zlyDXzw04TsT7lzy00TyDXw"
     static corneredAtext := "|<>*127$14.3w7ztzyTDjnzsTyrz0xriTzbzsDkU"
-    static closemark := "|<>*175$24.xzzjszz7kTy3UDw107s0U3k1k1U3s007w00Dy00Tz00zzU1zzU1zz00zy00Tw00Ds007k1U3U3k107s0UDw1kTy3szz7xzzjU"
+    static closemark := "|<>*185$20.0zs07w00y007080U2001k00S00Dk07y03zU0zk07s00w006000U2001k00y00Tk8Dy2"
     static giveUpTolerance := 2
     static loses := 0
     static rejoining := false
@@ -37,6 +37,7 @@ class TDSmacro {
     static inventoryimg := "|<>*137$22.0sQ07zs0TzU1zy0Dnw0jDE6wxUPzq1Dz84QsUE02300AQ00tk03b00CSQtttzbjbyTyQtxxnjXzzw7zzW" ;to check if player is on the uhh vote for a map type shi
     static solotext := "|<>*142$66.zzzzzzw3zzzy0Dzzzw3zzzs03zzzw3zzzU03zzzw3zzzU03zzzw3zzz003zzzw3zzz0zbz0Dw3y0T0zzw03w7s070Tzs01w7k0303zk00w7U01U0DU60w70A1k03UT0Q70y0s01UTUQ70z0z01UTUQ70z0zw1UTUQ70z0zy0UTUQ70z0bz1UT0Q70y0Uy1k60w7UA1001k00w7U01003s01w7k03007w03w7s07k0Tz0Dw7y0TU"
     static disconnectedtext := "|<>*147$115.zzbzzzzzzzzzzzzzzzy0TXzzzzzzzzzzzzbzzz03tzzzzzzzzzzzznzzzVkzzzzzzzzzzzzztzzzkyDzzzzzzzzzzzzwzzzsT6D3wDVsVsVy3w83Uy4DX60s30Q0Q0S0s01UC07tX6sP766C6CCMPbXa63wlXwTXn7b7bDYTnnt7VwMsSTnsXnXnU2Tts0XkyAS3DtwFtltk1Dww0FsTCDtXwSMwswtzXySTswC76QkyCASQSQSkz77gQ07X0Q1UCDCDD0Q1Uk700DlkT1sD7b7bsT1sS7kY"
+    static inventoryclosemark := "|<>*169$17.nzb3y43s03U800s03s0Ds0zk1zU3y03s03U020s03s4DsQztk"
     static maps := [
         "Abandoned City", "Abyssal Trench", "Autumn Falling", "Black Spot Exchange", "Candy Valley",
         "Cataclysm", "Chess Board", "Construction Crazy", "Coral Deep", "Crossroads",
@@ -61,9 +62,9 @@ class TDSmacro {
     ]
     static debug := false
     static patience := 180 ;if a loop is more than that long it will try to rejoin
-    static gamesorigin := [500,550]
     static lastTowerCord := [100,100]
     static gamemodes := ["Hardcore", "PVP", "Survival", "Special Modes", "Sandbox"]
+    static survivalPositionLookup := [[600,400],[900,240],[1185,240],[1455,240],[1000,515],[1400,515]]
     static gamemode := "Survival"
     static survivalmodes := ["Easy", "Casual", "Intermediate", "Molten", "Fallen", "Frost"]
     static map := "U-Turn"
@@ -78,7 +79,16 @@ class TDSmacro {
     static selectingTower := false
     static useRapidOCR := true
     static privateServerLink := ""
+    static netHourlyGain := [0,0] ;1st is coin 2nd is gem
+    static netHourlyRestarts := 0
+    static netHourlyFails := 0
+    static avgHourlyMatchDuration := 0
+    static netHourlyMatches := 0
+    static lastHourlyMatchAt := A_TickCount
+    static lastReport := A_TickCount
+    static lastMatchAt := A_TickCount
     static hModule := 0
+    static titleBarOffsetDelta := 0
     static __New() {
         SplitPath(A_LineFile, , &moduleDir)
         if FileExist(A_ScriptDir "\config.ini") {
@@ -175,7 +185,12 @@ class TDSmacro {
         robloxTitle := "ahk_exe RobloxPlayerBeta.exe"
         if WinExist(robloxTitle) {
             isMaximized := (WinGetMinMax(robloxTitle) == 1)
-            WinGetPos(,, &winW, &winH, robloxTitle)
+            WinGetPos(&wX, &wY, &winW, &winH, robloxTitle)
+            WinGetClientPos(&cX, &cY, &cW, &cH, robloxTitle)
+            currentTitleBarH := cY - wY
+            if (currentTitleBarH > 0) {
+                this.titleBarOffsetDelta := currentTitleBarH - 31
+            }
 
             if (!isMaximized || winH >= A_ScreenHeight) {
                 warnings.Push("Your current Roblox session isn't in Maximized Window mode (it may be in Fullscreen or normal Windowed mode).")
@@ -199,9 +214,9 @@ class TDSmacro {
         try {
             if (this.debug == true) {
                 if (state & 1) {
-                    Webhook.Send("TDSmacro v1.3 Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3.1 Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
-                    Webhook.Send("TDSmacro v1.3 Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3.1 Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 }
             }
         }
@@ -219,13 +234,15 @@ class TDSmacro {
 ;toX and toY is the second location
 ;Its for determining the width and height of the search field
     static Find(img, err1_mod:=0, err2_mod:=0, fromX:=0, fromY:= 0, toX:= A_ScreenWidth, toY:= A_ScreenHeight) {
+        adjFromY := (fromY == 0) ? 0 : fromY - Abs(this.titleBarOffsetDelta)
+        adjToY := (toY == A_ScreenHeight) ? A_ScreenHeight : toY + Abs(this.titleBarOffsetDelta)
         ; FindText V2 returns an array of objects if found, or false if not
         if (this.debug == true) {
             try {
                 w := Abs(toX - fromX)
-                h := Abs(toY - fromY)
+                h := Abs(adjToY - adjFromY)
                 startX := Min(toX, fromX)
-                startY := Min(toY, fromY)
+                startY := Min(adjToY, adjFromY)
                 DebugGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
                 DebugGui.BackColor := "0000FF"
                 WinSetTransColor("EEAA99", DebugGui) 
@@ -236,7 +253,7 @@ class TDSmacro {
                 SetTimer(() => DebugGui.Destroy(), -1000)
             }
         }
-        if (ok := FindText(&locX, &locY, fromX, fromY, toX, toY, this.pixelConfidence + err1_mod, this.colorConfidence + err2_mod, img)) {
+        if (ok := FindText(&locX, &locY, fromX, adjFromY, toX, adjToY, this.pixelConfidence + err1_mod, this.colorConfidence + err2_mod, img)) {
             return {x: locX, y: locY}
         }
         return false
@@ -250,11 +267,13 @@ class TDSmacro {
 ;Scale is for scaling the search field
 ;process is to change the OCR process
     static OcrWindowRead(x1:=0,y1:=0,x2:=A_ScreenWidth,y2:=A_ScreenHeight,Scale:=1,gray:=0,process:=unset) {
+        adjY1 := (y1 == 0) ? 0 : y1 - Abs(this.titleBarOffsetDelta)
+        adjY2 := (y2 == A_ScreenHeight) ? A_ScreenHeight : y2 + Abs(this.titleBarOffsetDelta)
         ; 1. Pre-calculate structural dimensions
         w := Abs(x2 - x1)
-        h := Abs(y2 - y1)
+        h := Abs(adjY2 - adjY1)
         startX := Min(x1, x2)
-        startY := Min(y1, y2)
+        startY := Min(adjY1, adjY2)
     
         ; 2. Find target window and convert Client coordinates to true Screen coordinates
         targetWin := (IsSet(process) && process != "") ? process : "A"
@@ -418,7 +437,7 @@ class TDSmacro {
         if (this.gamemode == this.gamemodes[1]) { ; cuz hardcore cant use consumeable so we have to shift it by a bit
             xconstant := 730
         }
-        Click(xconstant,1000)
+        Click(xconstant, 1000)
         Sleep(50)
         ticketsleft := 0
         loopStartedAt := A_TickCount
@@ -437,18 +456,18 @@ class TDSmacro {
                 }
             }
             if (ticketsleft > this.timescaleUntil) {
-                Click(970,630)
-                Sleep(500)
-                Click(xconstant,1000)
-                Sleep(500)
-                Click(xconstant,1000)
+                Click(970, 630)
+                Sleep(100)
+                Click(xconstant, 1000)
+                Sleep(100)
+                Click(xconstant, 1000)
                 break
             } else {
                 if (ticketsleft <= this.timescaleUntil && ticketsleft != 0) {
                     this.UseTimescale := false
                     Webhook.SendScreenshot("Saving timescale tickets, disabling timescale and runs macro as usual")
-                    Sleep(2000)
-                    Click(970,700)
+                    Sleep(1500)
+                    Click(970, 700)
                     break
                 }
             }
@@ -460,6 +479,7 @@ class TDSmacro {
     }
     ;insanitycheck
     static LoopTimeout(t) {
+        this.HourlyReport()
         if ((A_TickCount - t)/1000 > this.patience) {
             this.lost := true
             this.loses := 0
@@ -471,6 +491,20 @@ class TDSmacro {
         return false
     }
 
+    static HourlyReport() {
+        if (1000*60*60<=A_TickCount-this.lastReport) {
+            this.lastReport := A_TickCount
+            formated := [this.netHourlyRestarts,this.netHourlyFails,this.avgHourlyMatchDuration,this.netHourlyGain[1],this.netHourlyGain[2]]
+            this.netHourlyRestarts := 0
+            this.netHourlyFails := 0
+            this.avgHourlyMatchDuration := 0
+            this.netHourlyGain := [0,0]
+            this.netHourlyMatches := 0
+            Webhook.SendHourlyReport(formated[1],formated[2],formated[3],formated[4],formated[5],(this.lastHourlyMatchAt-this.lastMatchAt)/1000/60/60)
+            this.lastHourlyMatchAt := this.lastMatchAt
+        }
+    }
+
     static CheckLost() {
         if (this.lost == true) {
             return true
@@ -478,24 +512,36 @@ class TDSmacro {
         if (this.Find(this.youlosttext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
             this.loses+=1
+            if this.ArrayAutoCorrectSearch(this.goal,this.goallist)[1]==this.goallist[2] {
+                this.netHourlyRestarts++
+            } else {
+                this.netHourlyFails++
+            }
             elapsedtime := A_TickCount - this.starttime
+            this.avgHourlyMatchDuration := (this.avgHourlyMatchDuration*this.netHourlyMatches+elapsedtime)/(this.netHourlyMatches+1)
+            this.netHourlyMatches++
             Webhook.SendScreenshot("Lost, already lost " this.loses "x, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
         }
         if (this.Find(this.triumphtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
             this.loses := 0
+            this.netHourlyRestarts++
             elapsedtime := A_TickCount - this.starttime
+            this.avgHourlyMatchDuration := (this.avgHourlyMatchDuration*this.netHourlyMatches+elapsedtime)/(this.netHourlyMatches+1)
+            this.netHourlyMatches++
             Webhook.SendScreenshot("Triumph, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
         }
         if (this.loses >= this.giveUpTolerance AND this.goal == this.goallist[1]) {
             this.lost := true
             this.loses := 0
+            this.netHourlyFails++
             Webhook.Send("bro loses hope maybe i hallucinate map, imma rejoin rq")
             this.Rejoin()
         }
         if (this.Find(this.disconnectedtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
             this.loses := 0
+            this.netHourlyFails++
             Webhook.SendScreenshot("bro got disconnected get a better wifi")
             this.Rejoin()
         }
@@ -511,9 +557,10 @@ class TDSmacro {
             ;MouseMove(pos.x, pos.y, 10)
             Sleep(50)
             ;FindText().Click(pos.x, pos.y, "L")
-            Click(1023,217)
+            Click(1023, 217)
             Sleep(50)
-            MouseMove(savedX, savedY)
+            MouseMove(savedX, savedY,0)
+            Sleep(150)
             try {
                 if (ontower == true && InStr(this.OcrWindowRead(665,780,755,820,1).Text,"Level:") == 0) {
                     this.SelectTower(this.lastTowerCord[1],this.lastTowerCord[2])
@@ -643,7 +690,7 @@ class TDSmacro {
             offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2))
         
             targetX := this.Clamp(locationX + offsetX*this.PositiveSquash(it), 8, 1927)
-            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it), 32, 1032)
+            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it) + this.titleBarOffsetDelta, 32, 1032)
             
             MouseMove(targetX,targetY,2)
             Sleep(50)
@@ -704,6 +751,7 @@ class TDSmacro {
                 }
             }
             if (found == true) {
+                Sleep(100)
                 break
             }
 
@@ -759,15 +807,59 @@ class TDSmacro {
                 break
             }
         }
-        Webhook.SendDebugLog("Done awaiting button restart match/play again is clicked")
-    
-        Sleep(300)
+        Webhook.SendDebugLog("Done awaiting button")
+        this.lastMatchAt := A_TickCount
+        loopStartedAt := A_TickCount
+        targetNeedle:=0
+        targetTemp:=[0,0] ; 1st is coins 2nd is gems
+        if (this.ArrayAutoCorrectSearch(this.gamemode,this.gamemodes)[1] == this.gamemodes[1]) {
+            targetNeedle:=1 ; looks for gems instead (hardcore)
+        }
+        if (this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[1] == this.survivalmodes[5]) {
+            targetNeedle:=2 ; looks for gems and coins (frost mode)
+        }
+        Sleep(1500)
+        while (2000>A_TickCount-loopStartedAt) {
+            Sleep(300)
+            res:=TDSmacro.OcrWindowRead(640,530,1000,680)
+            if (targetNeedle >= 1 && targetTemp[2]==0) {
+                if (pos:=InStr(res.Text,"Gems")) {
+                    try {
+                        snippet := SubStr(res.Text, 1, pos - 1)
+                        if RegExMatch(snippet, "(\d+)\s*$", &match) {
+                            targetTemp[2] := Integer(match[1])
+                        }
+                    }
+                }
+            }
+            if ((targetNeedle == 0 || targetNeedle == 2) && targetTemp[1]==0) {
+                if (pos:=InStr(res.Text,"Coins")) {
+                    try {
+                        snippet := SubStr(res.Text, 1, pos - 1)
+                        if RegExMatch(snippet, "(\d+)\s*$", &match) {
+                            targetTemp[1] := Integer(match[1])
+                        }
+                    }
+                }
+            }
+            if (targetNeedle==0 && targetTemp[1]!=0)
+                break
+            if (targetNeedle==1 && targetTemp[2]!=0)
+                break
+            if (targetNeedle==2 && targetTemp[1]!=0 && targetTemp[2]!=0)
+                break
+        }
+        this.netHourlyGain:= [this.netHourlyGain[1]+targetTemp[1],this.netHourlyGain[2]+targetTemp[2]]
+
+
+        Sleep(100)
 
         cache:=this.ArrayAutoCorrectSearch(this.goal,this.goallist)
         if (cache[2] = True AND this.rejoining == false) {
             if (cache[1] == this.goallist[1] AND this.map != "" AND this.loses == 0) { ; bassically if it wins
                 if (this.privateServerLink!="") {
                     this.Rejoin()
+                    this.rejoining := false
                     return
                 }
                 this.NewGameSetUp(true)
@@ -810,7 +902,7 @@ class TDSmacro {
             offsetY := Random(-(this.noisestrength / 2), (this.noisestrength / 2)) + Ceil((locationY/(A_ScreenHeight/2)-1)*15)
         
             targetX := this.Clamp(locationX + offsetX*this.PositiveSquash(it), 8, 1927)
-            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it), 32, 1032)
+            targetY := this.Clamp(locationY + offsetY*this.PositiveSquash(it) + this.titleBarOffsetDelta, 32, 1032)
             this.CheckSkip()
             this.LoopTimeout(loopStartedAt)
             if (this.CheckLost() == true) {
@@ -929,6 +1021,11 @@ class TDSmacro {
                     Sleep(50)
                     Click(830, 880)
                 }
+                if (pos:=this.Find(this.inventoryclosemark,0.15,0.05, A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
+                    Click(pos.x,pos.y)
+                    Sleep(50)
+                    MouseMove(100,100,2)
+                }
             }
         }
         Sleep(300)
@@ -937,49 +1034,47 @@ class TDSmacro {
         Send("{r}")
         Sleep(200)
         Send("{Enter}")
-        Sleep(6000)
+        Sleep(6200)
 
-        this.VoteModifiers()
+        if (failstartedat==0) {
+            this.VoteModifiers()
+        }
 
-        this.CalibrateCamera(4)
-        Sleep(200)
+        this.CalibrateCamera(3)
+        Send("{Shift Down}")
         Send("{s Down}")
-        Sleep(4500)
+        Sleep(1500)
         Send("{s Up}")
-        Sleep(200)
-
         Send("{w Down}")
-        Sleep(2000)
+        Sleep(630)
         Send("{w Up}")
-        Sleep(200)
-
         Send("{a Down}")
-        Sleep(2200)
+        Sleep(730)
         Send("{a Up}")
-        Sleep(200)
-
         Send("{e Down}")
         Sleep(300)
         Send("{e Up}")
-        Sleep(1000)
+        Sleep(100)
         found := false
         Loop 20 {
             if (found = false) {
                 Sleep(50)
-                if (this.Find(this.corneredAtext, 0.15, 0.05, 695, 230, 715, 250)) {
+                if (this.Find(this.corneredAtext, 0.2, 0.125, 690, 225, 720, 255)) {
                     found := true
                 }   
             }
         }
         if (found = false) {
+            Send("{Shift Up}")
             this.NewGameSetUp(false,A_TickCount)
             return
         }
 
         ; do these below if it found
+        Sleep(100)
         Click(733, 248)
         SendText(this.ArrayAutoCorrectSearch(this.map,this.maps)[1])
-        Sleep(200)
+        Sleep(250)
         Click(782, 339)
         Sleep(400)
 
@@ -989,19 +1084,18 @@ class TDSmacro {
         }
 
         Send("{s Down}")
-        Sleep(3800)
+        Sleep(1150)
         Send("{s Up}")
-        Sleep(200)
-
         Send("{d Down}")
-        Sleep(3300)
+        Sleep(1050)
         Send("{d Up}")
         Sleep(100)
         Send("{e Down}")
         Sleep(300)
         Send("{e Up}")
         Sleep(100)
-        Click(972,878)
+        Click(972, 878)
+        Send("{Shift Up}")
         loopStartedAt := A_TickCount
         while (true) {
             if (this.LoopTimeout(loopStartedAt) == true) {
@@ -1011,7 +1105,6 @@ class TDSmacro {
                 break
             }
         }
-        Sleep(150)
         this.CalibrateCamera()
     }
 
@@ -1028,13 +1121,13 @@ class TDSmacro {
         }
         Webhook.SendDebugLog("Selecting Modifiers")
         Sleep(50)
-        Click(73,976)
+        Click(73, 976)
         Sleep(50)
         for v in cache {
-            Click(this.modifierorigin[1]+Mod(v,4)*120,this.modifierorigin[2]+Floor(v/4)*110)
+            Click(this.modifierorigin[1]+Mod(v,4)*120, this.modifierorigin[2]+Floor(v/4)*110)
             Sleep(10)
         }
-        Click(1125,888)
+        Click(1125, 888)
     }
     
     static Rejoin() {
@@ -1067,7 +1160,7 @@ class TDSmacro {
                 break
             }
             if (pos := this.Find(this.loginRewardsImg, 0.05, 0.05, 640, 375, 700, 405)) {
-                Click(970,800)
+                Click(970, 800)
             }
         }
         Webhook.SendDebugLog("Play text found")
@@ -1076,30 +1169,19 @@ class TDSmacro {
             if (this.LoopTimeout(loopStartedAt) == true) {
                 return
             }
-            if (pos := this.Find(this.closemark, 0.05, 0.05, 1160, 250, 1210, 350)) {
-                Sleep(200)
+            if (pos := this.Find(this.closemark, 0.05, 0.05, A_ScreenWidth*2/3, 0, A_ScreenWidth*7/8, A_ScreenHeight/6)) {
+                Sleep(400)
                 break
             }
             Sleep(50)
         }
         cache := this.ArrayAutoCorrectSearch(this.gamemode,this.gamemodes)
-        Click((cache[3]-1)*250+this.gamesorigin[1],this.gamesorigin[2])
-        Sleep(500)
         if (cache[1] = this.gamemodes[3]) {
-            Click((this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]-1)*250-125+this.gamesorigin[1],this.gamesorigin[2])
+            cache := this.survivalPositionLookup[this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]] 
+            Click(cache[1],cache[2])
         }
-        Webhook.SendDebugLog("Awaiting for solotext")
-        loopStartedAt := A_TickCount
-        while (true) {
-            if (this.LoopTimeout(loopStartedAt) == true) {
-                return
-            }
-            Sleep(80)
-            if (pos := this.Find(this.solotext, 0.18, 0.05,550,330,960,560)) {
-                Click(pos.x, pos.y-100)
-                break
-            }
-        }
+        Sleep(500)
+        Click(770,420) ; clicks solo :D
         this.NewGameSetUp()
     }
 ;==============================================================

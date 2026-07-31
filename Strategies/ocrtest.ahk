@@ -179,4 +179,18 @@ F3:: {
         ToolTip "Found Clean Number: " cleanText
     }
 }
+
+F9:: {
+    static testActive := false
+    testActive := !testActive
+    if (testActive) {
+        TDSmacro.titleBarOffsetDelta += 20
+        ToolTip "Test Offset ACTIVATED (+20px shift). Press F1/F4 to inspect red box."
+    } else {
+        TDSmacro.titleBarOffsetDelta -= 20
+        ToolTip "Test Offset DEACTIVATED (normal). Press F1/F4 to inspect red box."
+    }
+    SetTimer () => ToolTip(), -3000
+}
+
 Esc::ExitApp
