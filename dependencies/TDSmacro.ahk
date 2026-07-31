@@ -28,7 +28,7 @@ class TDSmacro {
     static triumphtext := "|<>*136$43.00000C00000070000003U000001k000000s000000Q000000C00000070Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0Dz00zzU7zU0Tzk3zk0Dzs1zs07zw0zw03zy0Ty01zz0DzU0zzU7zk0Tzk3zs0Dzs1zw07zw0zy03zy0Tz01zz0DzU0zzU7zk0Tzk2"
     static playtext := "|<>*166$55.07szzky7w00wTzsTXy00CDzs7ky8y77zw3wS4TVXzy8y76DklzyATV77sMzz67s3XsQTz7Xw3k0CDzXkz1s0D7zU0TVw0TXzk0DsyDzlzk03wT7zs08zlyDXzw04TsT7lzy00TyDXw"
     static corneredAtext := "|<>*127$14.3w7ztzyTDjnzsTyrz0xriTzbzsDkU"
-    static closemark := "|<>*175$24.xzzjszz7kTy3UDw107s0U3k1k1U3s007w00Dy00Tz00zzU1zzU1zz00zy00Tw00Ds007k1U3U3k107s0UDw1kTy3szz7xzzjU"
+    static closemark := "|<>*185$20.0zs07w00y007080U2001k00S00Dk07y03zU0zk07s00w006000U2001k00y00Tk8Dy2"
     static giveUpTolerance := 2
     static loses := 0
     static rejoining := false
@@ -62,9 +62,9 @@ class TDSmacro {
     ]
     static debug := false
     static patience := 180 ;if a loop is more than that long it will try to rejoin
-    static gamesorigin := [500,550]
     static lastTowerCord := [100,100]
     static gamemodes := ["Hardcore", "PVP", "Survival", "Special Modes", "Sandbox"]
+    static survivalPositionLookup := [[600,400],[900,240],[1185,240],[1455,240],[1000,515],[1400,515]]
     static gamemode := "Survival"
     static survivalmodes := ["Easy", "Casual", "Intermediate", "Molten", "Fallen", "Frost"]
     static map := "U-Turn"
@@ -214,9 +214,9 @@ class TDSmacro {
         try {
             if (this.debug == true) {
                 if (state & 1) {
-                    Webhook.Send("TDSmacro v1.3 Snapshot Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3.1 Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
-                    Webhook.Send("TDSmacro v1.3 Snapshot Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3.1 Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 }
             }
         }
@@ -1169,30 +1169,19 @@ class TDSmacro {
             if (this.LoopTimeout(loopStartedAt) == true) {
                 return
             }
-            if (pos := this.Find(this.closemark, 0.05, 0.05, 1160, 250, 1210, 350)) {
-                Sleep(200)
+            if (pos := this.Find(this.closemark, 0.05, 0.05, A_ScreenWidth*2/3, 0, A_ScreenWidth*7/8, A_ScreenHeight/6)) {
+                Sleep(400)
                 break
             }
             Sleep(50)
         }
         cache := this.ArrayAutoCorrectSearch(this.gamemode,this.gamemodes)
-        Click((cache[3]-1)*250+this.gamesorigin[1], this.gamesorigin[2])
-        Sleep(500)
         if (cache[1] = this.gamemodes[3]) {
-            Click((this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]-1)*250-125+this.gamesorigin[1], this.gamesorigin[2])
+            cache := this.survivalPositionLookup[this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]] 
+            Click(cache[1],cache[2])
         }
-        Webhook.SendDebugLog("Awaiting for solotext")
-        loopStartedAt := A_TickCount
-        while (true) {
-            if (this.LoopTimeout(loopStartedAt) == true) {
-                return
-            }
-            Sleep(80)
-            if (pos := this.Find(this.solotext, 0.18, 0.05,550,330,960,560)) {
-                Click(pos.x, pos.y-100)
-                break
-            }
-        }
+        Sleep(500)
+        Click(770,420) ; clicks solo :D
         this.NewGameSetUp()
     }
 ;==============================================================
