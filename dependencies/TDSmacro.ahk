@@ -214,9 +214,9 @@ class TDSmacro {
         try {
             if (this.debug == true) {
                 if (state & 1) {
-                    Webhook.Send("TDSmacro v1.3.1 Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3.1 Snapshots Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
-                    Webhook.Send("TDSmacro v1.3.1 Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v1.3.1 Snapshots Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 }
             }
         }
@@ -500,7 +500,7 @@ class TDSmacro {
             this.avgHourlyMatchDuration := 0
             this.netHourlyGain := [0,0]
             this.netHourlyMatches := 0
-            Webhook.SendHourlyReport(formated[1],formated[2],formated[3],formated[4],formated[5],(this.lastHourlyMatchAt-this.lastMatchAt)/1000/60/60)
+            Webhook.SendHourlyReport(formated[1],formated[2],formated[3],formated[4],formated[5],(this.lastMatchAt-this.lastHourlyMatchAt)/1000/60/60)
             this.lastHourlyMatchAt := this.lastMatchAt
         }
     }
@@ -520,7 +520,7 @@ class TDSmacro {
             elapsedtime := A_TickCount - this.starttime
             this.avgHourlyMatchDuration := (this.avgHourlyMatchDuration*this.netHourlyMatches+elapsedtime)/(this.netHourlyMatches+1)
             this.netHourlyMatches++
-            Webhook.SendScreenshot("Lost, already lost " this.loses "x, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
+            ;Webhook.SendScreenshot("Lost, already lost " this.loses "x, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
         }
         if (this.Find(this.triumphtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
@@ -529,7 +529,7 @@ class TDSmacro {
             elapsedtime := A_TickCount - this.starttime
             this.avgHourlyMatchDuration := (this.avgHourlyMatchDuration*this.netHourlyMatches+elapsedtime)/(this.netHourlyMatches+1)
             this.netHourlyMatches++
-            Webhook.SendScreenshot("Triumph, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
+            ;Webhook.SendScreenshot("Triumph, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
         }
         if (this.loses >= this.giveUpTolerance AND this.goal == this.goallist[1]) {
             this.lost := true
@@ -818,7 +818,13 @@ class TDSmacro {
         if (this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[1] == this.survivalmodes[5]) {
             targetNeedle:=2 ; looks for gems and coins (frost mode)
         }
+        elapsedtime := A_TickCount - this.starttime
         Sleep(1500)
+        if this.loses==0 {
+            Webhook.SendScreenshot("Triumph, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
+        } else {
+            Webhook.SendScreenshot("Lost, already lost " this.loses "x, took " Floor(ElapsedTime / 60000) "m " Floor(Mod(ElapsedTime, 60000) / 1000) "s ")
+        }
         while (2000>A_TickCount-loopStartedAt) {
             Sleep(300)
             res:=TDSmacro.OcrWindowRead(640,530,1000,680)
@@ -880,9 +886,9 @@ class TDSmacro {
             if (this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
                 break
             }
-            Click(830, 800)
+            Click(860, 800)
             Sleep(50)
-            Click(830, 880)
+            Click(860, 880)
         }
     }
 ;Its for selectiong your tower at designated location.
@@ -1016,10 +1022,10 @@ class TDSmacro {
                 break
             }
             if (isTriumph==true) {
-                if (this.Find(this.triumphtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
-                    Click(830, 800)
+                if (this.Find(this.triumphtext,0.1,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
+                    Click(860, 800)
                     Sleep(50)
-                    Click(830, 880)
+                    Click(860, 880)
                 }
                 if (pos:=this.Find(this.inventoryclosemark,0.15,0.05, A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
                     Click(pos.x,pos.y)
