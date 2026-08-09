@@ -130,7 +130,7 @@ class Webhook {
             
             ; Construct Discord Embed Structure
             embed := Map(
-                "title", emojiChart . " TDS Macro Hourly Report - V1.3 Snapshots",
+                "title", emojiChart . " TDS Macro Hourly Report - V1.3.1 Snapshots",
                 "description", "Hourly summary of tdsmacro-oss (Irregular macro)",
                 "color", 16777215,
                 "fields", fields,
