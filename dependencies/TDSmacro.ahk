@@ -89,6 +89,9 @@ class TDSmacro {
     static lastMatchAt := A_TickCount
     static hModule := 0
     static titleBarOffsetDelta := 0
+    static versionName := "Unknown"
+    static winRatioGoal := 1000
+    static winStreak := 0
     static __New() {
         SplitPath(A_LineFile, , &moduleDir)
         if FileExist(A_ScriptDir "\config.ini") {
@@ -108,7 +111,9 @@ class TDSmacro {
             this.privateServerLink := ""
         }
 
-        ; 2. Read debug mode (default to false, and parse string safely to boolean)
+        this.versionName := IniRead(iniPath, "Settings", "VersionName", "Unknown")
+
+        ; 2. Read debug mode (default to false, and parse string safely to boolean
         debugVal := IniRead(iniPath, "Settings", "Debug", "false")
         this.debug := (debugVal = "true" || debugVal = "1")
 
@@ -139,6 +144,11 @@ class TDSmacro {
             this.patience := 150
         }
         try {
+            this.winRatioGoal := Max(1,Integer(IniRead(iniPath, "Settings", "WinRatioGoal", "1000")))
+        } catch {
+            this.winRatioGoal := 1000
+        }
+        try {
             this.giveUpTolerance := Max(1,Integer(IniRead(iniPath, "Settings", "GiveUpTolerance", "2")))
         } catch {
             this.giveUpTolerance := 2
@@ -149,7 +159,7 @@ class TDSmacro {
             this.iterativeReads := 5
         }
         try {
-            this.timescaleUntil := Max(1,Integer(IniRead(iniPath, "Settings", "timescaleUntil", "1")))
+            this.timescaleUntil := Max(1,Integer(IniRead(iniPath, "Settings", "TimescaleUntil", "1")))
         } catch {
             this.timescaleUntil := 1
         }
@@ -214,9 +224,9 @@ class TDSmacro {
         try {
             if (this.debug == true) {
                 if (state & 1) {
-                    Webhook.Send("TDSmacro v1.3.1 Snapshots Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v" this.versionName " Taskbar Auto-Hide = true DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 } else {
-                    Webhook.Send("TDSmacro v1.3.1 Snapshots Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
+                    Webhook.Send("TDSmacro v" this.versionName " Snapshots Auto-Hide = false DPI:" A_ScreenDPI " Resolution: " A_ScreenWidth "x" A_ScreenHeight)
                 }
             }
         }
@@ -512,6 +522,7 @@ class TDSmacro {
         if (this.Find(this.youlosttext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
             this.loses+=1
+            this.winStreak := 0
             if this.ArrayAutoCorrectSearch(this.goal,this.goallist)[1]==this.goallist[2] {
                 this.netHourlyRestarts++
             } else {
@@ -525,6 +536,7 @@ class TDSmacro {
         if (this.Find(this.triumphtext,0,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
             this.lost := true
             this.loses := 0
+            this.winStreak++
             this.netHourlyRestarts++
             elapsedtime := A_TickCount - this.starttime
             this.avgHourlyMatchDuration := (this.avgHourlyMatchDuration*this.netHourlyMatches+elapsedtime)/(this.netHourlyMatches+1)
@@ -790,6 +802,19 @@ class TDSmacro {
         }
         this.starttime := A_TickCount
         Webhook.SendDebugLog("Ready Found, Assigning starttime as " this.starttime)
+        if (this.winStreak >= this.winRatioGoal && this.ArrayAutoCorrectSearch(this.goal,this.goallist)[1] == this.goallist[1]) {
+            Webhook.SendDebugLog("Intentionally Losing")
+            loopStartedAt := A_TickCount
+            while (true) {
+                Sleep(20)
+                this.CheckSkip()
+                this.LoopTimeout(loopStartedAt)
+                if (this.CheckLost() == true) {
+                    break
+                }
+            }
+            this.winStreak := 0
+        }
     }
 
     static RestartMatch() {
@@ -886,9 +911,9 @@ class TDSmacro {
             if (this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
                 break
             }
-            Click(860, 800)
+            Click(850, 800)
             Sleep(50)
-            Click(860, 880)
+            Click(850, 880)
         }
     }
 ;Its for selectiong your tower at designated location.
@@ -1023,9 +1048,9 @@ class TDSmacro {
             }
             if (isTriumph==true) {
                 if (this.Find(this.triumphtext,0.1,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
-                    Click(860, 800)
+                    Click(850, 800)
                     Sleep(50)
-                    Click(860, 880)
+                    Click(850, 880)
                 }
                 if (pos:=this.Find(this.inventoryclosemark,0.15,0.05, A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
                     Click(pos.x,pos.y)

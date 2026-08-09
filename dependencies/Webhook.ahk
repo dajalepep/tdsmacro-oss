@@ -7,6 +7,7 @@ class Webhook {
     static startSession:=A_TickCount
     static sendScreenshots:=true
     static sendHourlyReports:=true
+    static versionName:="Unknown"
     static __New() {
         SplitPath(A_LineFile, , &moduleDir)
         if FileExist(A_ScriptDir "\config.ini") {
@@ -16,6 +17,7 @@ class Webhook {
         } else {
             iniPath := A_ScriptDir "\config.ini"
         }
+        this.versionName := IniRead(iniPath, "Settings", "VersionName", "Unknown")
         this.webhookUrl := IniRead(iniPath, "Settings", "DiscordWebhook", "")
         debugVal := IniRead(iniPath, "Settings", "Debug", "false")
         this.debug := (debugVal = "true" || debugVal = "1")
@@ -130,7 +132,7 @@ class Webhook {
             
             ; Construct Discord Embed Structure
             embed := Map(
-                "title", emojiChart . " TDS Macro Hourly Report - V1.3.1 Snapshots",
+                "title", emojiChart . " TDS Macro Hourly Report - v" this.versionName " Snapshots",
                 "description", "Hourly summary of tdsmacro-oss (Irregular macro)",
                 "color", 16777215,
                 "fields", fields,
