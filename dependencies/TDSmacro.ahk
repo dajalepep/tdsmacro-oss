@@ -1170,11 +1170,12 @@ class TDSmacro {
                 return
             }
             if (pos := this.Find(this.closemark, 0.05, 0.05, A_ScreenWidth*2/3, 0, A_ScreenWidth*7/8, A_ScreenHeight/6)) {
-                Sleep(400)
+                Sleep(800)
                 break
             }
             Sleep(50)
         }
+        Click(350,255)
         cache := this.ArrayAutoCorrectSearch(this.gamemode,this.gamemodes)
         if (cache[1] = this.gamemodes[3]) {
             cache := this.survivalPositionLookup[this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]] 
