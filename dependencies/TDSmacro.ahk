@@ -911,9 +911,9 @@ class TDSmacro {
             if (this.Find(this.readybuttonimg, 0.1, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
                 break
             }
-            Click(850, 800)
+            Click(1150, 800)
             Sleep(50)
-            Click(850, 880)
+            Click(1150, 880)
         }
     }
 ;Its for selectiong your tower at designated location.
