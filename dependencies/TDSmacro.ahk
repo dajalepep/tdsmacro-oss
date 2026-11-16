@@ -407,7 +407,7 @@ class TDSmacro {
     }
     ;OCRgetupgradeprice
     static GetUpgradePrice() {
-        result := this.OcrWindowRead(1030,630,1180,845,1)
+        result := this.OcrWindowRead(1025,610,1180,845,1)
         tablefromresult := StrSplit(RegExReplace(result.Text, "[^\w!@#$%^&*()$+= \-}{\]\[|\\:;.\x22'?><,/]"), " ")
     
         if (!result || !result.Text)
@@ -574,7 +574,7 @@ class TDSmacro {
             MouseMove(savedX, savedY,0)
             Sleep(150)
             try {
-                if (ontower == true && InStr(this.OcrWindowRead(665,780,755,820,1).Text,"Level:") == 0) {
+                if (ontower == true && InStr(this.OcrWindowRead(665,755,755,820,1).Text,"Level:") == 0) {
                     this.SelectTower(this.lastTowerCord[1],this.lastTowerCord[2])
                 }
             }
@@ -608,7 +608,7 @@ class TDSmacro {
             res := -1
             loop this.iterativeReads {
                 if (res==-1) {
-                    result := this.OcrWindowRead(665,780,755,820,1)
+                    result := this.OcrWindowRead(665,755,755,820,1)
                     res := this.ParseLevel(result.Text)
                     Sleep(50)
                 }
@@ -663,7 +663,7 @@ class TDSmacro {
             found := false
             if (found == false) {
                 if (this.UseOCR == true) {
-                    result := this.OcrWindowRead(665,780,755,820,1)
+                    result := this.OcrWindowRead(665,755,755,820,1)
                     reslevel := this.ParseLevel(result.Text)
                     if (reslevel >= Level) {
                         found := true
@@ -725,7 +725,7 @@ class TDSmacro {
                             OCRplaced := true
                             break
                         }
-                        result := this.OcrWindowRead(665,780,755,820,1)
+                        result := this.OcrWindowRead(665,755,755,820,1)
                         pos:=InStr(result.Text, "Level:")
                         if (pos != 0) {
                             OCRplaced := true
@@ -748,7 +748,7 @@ class TDSmacro {
             loop this.iterativeReads*mult {
                 if (found == false) {
                     if (this.UseOCR == true) {
-                        result := this.OcrWindowRead(665,780,755,820,1)
+                        result := this.OcrWindowRead(665,755,755,820,1)
                         level := -1
                         pos:=InStr(result.Text, "Level:")
                         if (pos != 0) {
