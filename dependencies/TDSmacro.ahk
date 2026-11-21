@@ -567,16 +567,16 @@ class TDSmacro {
         if (pos := this.Find(this.skipbutton, 0.15, 0.05,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/3)) {
             MouseGetPos(&savedX, &savedY)
             ;MouseMove(pos.x, pos.y, 10)
-            Sleep(50)
+            ;Sleep(50)
             ;FindText().Click(pos.x, pos.y, "L")
             Click(1023, 217)
             Sleep(50)
             MouseMove(savedX, savedY,0)
-            Sleep(150)
-            try {
-                if (ontower == true && InStr(this.OcrWindowRead(665,755,755,820,1).Text,"Level:") == 0) {
-                    this.SelectTower(this.lastTowerCord[1],this.lastTowerCord[2])
-                }
+            Sleep(50)
+        }
+        try {
+            if (ontower == true && InStr(this.OcrWindowRead(665,755,755,820,1).Text,"Level:") == 0) {
+                this.SelectTower(this.lastTowerCord[1],this.lastTowerCord[2])
             }
         }
     }
@@ -706,15 +706,16 @@ class TDSmacro {
             
             MouseMove(targetX,targetY,2)
             Sleep(50)
-            Click(targetX, targetY)
-            Sleep(200)
             MouseGetPos(&mx,&my)
             rescr := this.OcrWindowRead(mx+5,my-85,mx+245,my-60)
             if (InStr(rescr.Text,"Tower")) {
                 Send("q")
                 this.SelectTower(locationX,locationY)
                 return
+            } else {
+                Click(targetX, targetY)
             }
+            Sleep(250)
             OCRplaced := false
             if (this.UseOCR == true) {
                 loop this.iterativeReads {
@@ -1048,9 +1049,9 @@ class TDSmacro {
             }
             if (isTriumph==true) {
                 if (this.Find(this.triumphtext,0.1,0,A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
-                    Click(850, 800)
+                    Click(1150, 800)
                     Sleep(50)
-                    Click(850, 880)
+                    Click(1150, 880)
                 }
                 if (pos:=this.Find(this.inventoryclosemark,0.15,0.05, A_ScreenWidth/3,0,A_ScreenWidth*2/3,A_ScreenHeight/2)) {
                     Click(pos.x,pos.y)
@@ -1206,7 +1207,7 @@ class TDSmacro {
             }
             Sleep(50)
         }
-        Click(350,255)
+        ;Click(350,255) <- cuz event ended xd
         cache := this.ArrayAutoCorrectSearch(this.gamemode,this.gamemodes)
         if (cache[1] = this.gamemodes[3]) {
             cache := this.survivalPositionLookup[this.ArrayAutoCorrectSearch(this.survivalmode,this.survivalmodes)[3]] 

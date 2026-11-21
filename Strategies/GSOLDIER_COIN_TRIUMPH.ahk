@@ -17,20 +17,20 @@ TDSmacro.survivalmode := "Easy"
 ; Coordinate Modes Setup for AHK v2
 CoordMode("Mouse", "Window")
 
-leftsoldiers := [[889,165]]
-rightsoldiers := [[975,165]]
+leftsoldiers := [[925,305]]
+rightsoldiers := [[1015,305]]
 soldiers := []
 
 loop 4 {
-    leftsoldiers.Push([leftsoldiers[1][1]-(2*A_Index),leftsoldiers[1][2]+(48*A_Index)])
-    rightsoldiers.Push([rightsoldiers[1][1],rightsoldiers[1][2]+(48*A_Index)])
+    leftsoldiers.Push([leftsoldiers[1][1]-(2*A_Index),leftsoldiers[1][2]+(49*A_Index)])
+    rightsoldiers.Push([rightsoldiers[1][1],rightsoldiers[1][2]+(49*A_Index)])
 }
 
 for i,v in leftsoldiers.Clone() {
-    leftsoldiers.Push([v[1]-48,v[2]])
+    leftsoldiers.Push([v[1]-49,v[2]])
 }
 for i,v in rightsoldiers.Clone() {
-    rightsoldiers.Push([v[1]+48,v[2]])
+    rightsoldiers.Push([v[1]+49,v[2]])
 }
 
 loop leftsoldiers.Length {

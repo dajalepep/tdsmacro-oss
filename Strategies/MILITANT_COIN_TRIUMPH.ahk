@@ -17,20 +17,20 @@ TDSmacro.survivalmode := "Easy"
 ; Coordinate Modes Setup for AHK v2
 CoordMode("Mouse", "Window")
 
-leftmilitants := [[889,165]]
-rightmilitants := [[975,165]]
+leftmilitants := [[925,305]]
+rightmilitants := [[1015,305]]
 militants := []
 
 loop 4 {
-    leftmilitants.Push([leftmilitants[1][1]-(2*A_Index),leftmilitants[1][2]+(48*A_Index)])
-    rightmilitants.Push([rightmilitants[1][1],rightmilitants[1][2]+(48*A_Index)])
+    leftmilitants.Push([leftmilitants[1][1]-(2*A_Index),leftmilitants[1][2]+(49*A_Index)])
+    rightmilitants.Push([rightmilitants[1][1],rightmilitants[1][2]+(49*A_Index)])
 }
 
 for i,v in leftmilitants.Clone() {
-    leftmilitants.Push([v[1]-48,v[2]])
+    leftmilitants.Push([v[1]-49,v[2]])
 }
 for i,v in rightmilitants.Clone() {
-    rightmilitants.Push([v[1]+48,v[2]])
+    rightmilitants.Push([v[1]+49,v[2]])
 }
 
 loop leftmilitants.Length {
